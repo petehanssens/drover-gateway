@@ -62,9 +62,11 @@ func acquireBedrockChatResponse() *BedrockConverseResponse {
 
 // releaseBedrockChatResponse returns a Bedrock response to the pool.
 func releaseBedrockChatResponse(resp *BedrockConverseResponse) {
-	if resp != nil {
-		bedrockChatResponsePool.Put(resp)
+	if resp == nil {
+		return
 	}
+	*resp = BedrockConverseResponse{}
+	bedrockChatResponsePool.Put(resp)
 }
 
 // NewBedrockProvider creates a new Bedrock provider instance.
@@ -1020,28 +1022,41 @@ func (provider *BedrockProvider) TextCompletionStream(ctx *schemas.BifrostContex
 }
 
 // ChatCompletion performs a chat completion request to Bedrock's API.
-// It formats the request, sends it to Bedrock, and processes the response.
+// For Anthropic models, uses the Anthropic Messages API format via the InvokeModel endpoint.
+// For all other models, uses the Bedrock Converse API.
 // Returns a BifrostResponse containing the completion results or an error if the request fails.
 func (provider *BedrockProvider) ChatCompletion(ctx *schemas.BifrostContext, key schemas.Key, request *schemas.BifrostChatRequest) (*schemas.BifrostChatResponse, *schemas.BifrostError) {
 	if err := providerUtils.CheckOperationAllowed(schemas.Bedrock, provider.customProviderConfig, schemas.ChatCompletionRequest); err != nil {
 		return nil, err
 	}
 
-	// Use centralized Bedrock converter
-	jsonData, bifrostErr := providerUtils.CheckContextAndGetRequestBody(
-		ctx,
-		request,
-		func() (providerUtils.RequestBodyWithExtraParams, error) {
-			return ToBedrockChatCompletionRequest(ctx, request)
-		})
-	if bifrostErr != nil {
-		return nil, bifrostErr
+	var jsonData []byte
+	var path string
+
+	if schemas.IsAnthropicModel(request.Model) {
+		// Use Anthropic Messages API format via InvokeModel endpoint
+		var bifrostErr *schemas.BifrostError
+		jsonData, bifrostErr = getBedrockAnthropicChatRequestBody(ctx, request, request.Model)
+		if bifrostErr != nil {
+			return nil, bifrostErr
+		}
+		path = provider.getModelPath("invoke", request.Model, key)
+	} else {
+		// Use Bedrock Converse API for all other models
+		var bifrostErr *schemas.BifrostError
+		jsonData, bifrostErr = providerUtils.CheckContextAndGetRequestBody(
+			ctx,
+			request,
+			func() (providerUtils.RequestBodyWithExtraParams, error) {
+				return ToBedrockChatCompletionRequest(ctx, request)
+			})
+		if bifrostErr != nil {
+			return nil, bifrostErr
+		}
+		path = provider.getModelPath("converse", request.Model, key)
 	}
 
-	// Format the path with proper model identifier
-	path := provider.getModelPath("converse", request.Model, key)
-
-	// Create the signed request
+	// Send the request
 	responseBody, latency, providerResponseHeaders, bifrostErr := provider.completeRequest(ctx, jsonData, path, key)
 	if providerResponseHeaders != nil {
 		ctx.SetValue(schemas.BifrostContextKeyProviderResponseHeaders, providerResponseHeaders)
@@ -1050,45 +1065,67 @@ func (provider *BedrockProvider) ChatCompletion(ctx *schemas.BifrostContext, key
 		return nil, providerUtils.EnrichError(ctx, bifrostErr, jsonData, nil, provider.sendBackRawRequest, provider.sendBackRawResponse)
 	}
 
-	// pool the response
-	bedrockResponse := acquireBedrockChatResponse()
-	defer releaseBedrockChatResponse(bedrockResponse)
+	var bifrostResponse *schemas.BifrostChatResponse
 
-	// Parse the response using the new Bedrock type
-	if err := sonic.Unmarshal(responseBody, bedrockResponse); err != nil {
-		return nil, providerUtils.EnrichError(ctx, providerUtils.NewBifrostOperationError("failed to parse bedrock response", err), jsonData, responseBody, provider.sendBackRawRequest, provider.sendBackRawResponse)
-	}
+	if schemas.IsAnthropicModel(request.Model) {
+		// Parse Anthropic Messages API response
+		anthropicResponse := anthropic.AcquireAnthropicMessageResponse()
+		defer anthropic.ReleaseAnthropicMessageResponse(anthropicResponse)
 
-	// Convert using the new response converter
-	bifrostResponse, err := bedrockResponse.ToBifrostChatResponse(ctx, request.Model)
-	if err != nil {
-		return nil, providerUtils.EnrichError(ctx, providerUtils.NewBifrostOperationError("failed to convert bedrock response", err), jsonData, responseBody, provider.sendBackRawRequest, provider.sendBackRawResponse)
-	}
+		rawRequest, rawResponse, err := providerUtils.HandleProviderResponse(responseBody, anthropicResponse, jsonData, providerUtils.ShouldSendBackRawRequest(ctx, provider.sendBackRawRequest), providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse))
+		if err != nil {
+			return nil, providerUtils.EnrichError(ctx, err, jsonData, responseBody, provider.sendBackRawRequest, provider.sendBackRawResponse)
+		}
+		bifrostResponse = anthropicResponse.ToBifrostChatResponse(ctx)
 
-	// Override finish reason for structured output
-	// When structured output is used, tool_use is expected but should appear as "stop" to the client
-	if _, ok := ctx.Value(schemas.BifrostContextKeyStructuredOutputToolName).(string); ok {
-		if len(bifrostResponse.Choices) > 0 && bifrostResponse.Choices[0].FinishReason != nil {
-			if *bifrostResponse.Choices[0].FinishReason == string(schemas.BifrostFinishReasonToolCalls) {
-				bifrostResponse.Choices[0].FinishReason = schemas.Ptr(string(schemas.BifrostFinishReasonStop))
+		// Set ExtraFields
+		bifrostResponse.ExtraFields.RequestType = schemas.ChatCompletionRequest
+		bifrostResponse.ExtraFields.Latency = latency.Milliseconds()
+		bifrostResponse.ExtraFields.ProviderResponseHeaders = providerResponseHeaders
+
+		if providerUtils.ShouldSendBackRawRequest(ctx, provider.sendBackRawRequest) {
+			bifrostResponse.ExtraFields.RawRequest = rawRequest
+		}
+		if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
+			bifrostResponse.ExtraFields.RawResponse = rawResponse
+		}
+	} else {
+		// Parse Bedrock Converse API response
+		bedrockResponse := acquireBedrockChatResponse()
+		defer releaseBedrockChatResponse(bedrockResponse)
+
+		// Parse the response using the new Bedrock type
+		if err := sonic.Unmarshal(responseBody, bedrockResponse); err != nil {
+			return nil, providerUtils.EnrichError(ctx, providerUtils.NewBifrostOperationError("failed to parse bedrock response", err), jsonData, responseBody, provider.sendBackRawRequest, provider.sendBackRawResponse)
+		}
+
+		// Convert using the new response converter
+		bifrostResponse, err := bedrockResponse.ToBifrostChatResponse(ctx, request.Model)
+		if err != nil {
+			return nil, providerUtils.EnrichError(ctx, providerUtils.NewBifrostOperationError("failed to convert bedrock response", err), jsonData, responseBody, provider.sendBackRawRequest, provider.sendBackRawResponse)
+		}
+
+		// Override finish reason for structured output (Converse API only)
+		if _, ok := ctx.Value(schemas.BifrostContextKeyStructuredOutputToolName).(string); ok {
+			if len(bifrostResponse.Choices) > 0 && bifrostResponse.Choices[0].FinishReason != nil {
+				if *bifrostResponse.Choices[0].FinishReason == string(schemas.BifrostFinishReasonToolCalls) {
+					bifrostResponse.Choices[0].FinishReason = schemas.Ptr(string(schemas.BifrostFinishReasonStop))
+				}
 			}
 		}
-	}
 
-	// Set ExtraFields
-	bifrostResponse.ExtraFields.Latency = latency.Milliseconds()
-	bifrostResponse.ExtraFields.ProviderResponseHeaders = providerResponseHeaders
+		// Set ExtraFields
+		bifrostResponse.ExtraFields.Latency = latency.Milliseconds()
+		bifrostResponse.ExtraFields.ProviderResponseHeaders = providerResponseHeaders
 
-	// Set raw request if enabled
-	if providerUtils.ShouldSendBackRawRequest(ctx, provider.sendBackRawRequest) {
-		providerUtils.ParseAndSetRawRequest(&bifrostResponse.ExtraFields, jsonData)
-	}
-
-	// Set raw response if enabled
-	if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
-		var rawResponse interface{}
-		if err := sonic.Unmarshal(responseBody, &rawResponse); err == nil {
-			bifrostResponse.ExtraFields.RawResponse = rawResponse
+		if providerUtils.ShouldSendBackRawRequest(ctx, provider.sendBackRawRequest) {
+			providerUtils.ParseAndSetRawRequest(&bifrostResponse.ExtraFields, jsonData)
+		}
+		if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
+			var rawResponse interface{}
+			if err := sonic.Unmarshal(responseBody, &rawResponse); err == nil {
+				bifrostResponse.ExtraFields.RawResponse = rawResponse
+			}
 		}
 	}
 
@@ -1096,23 +1133,42 @@ func (provider *BedrockProvider) ChatCompletion(ctx *schemas.BifrostContext, key
 }
 
 // ChatCompletionStream performs a streaming chat completion request to Bedrock's API.
-// It formats the request, sends it to Bedrock, and processes the streaming response.
+// For Anthropic models, uses the Anthropic Messages API format via InvokeModel streaming.
+// For all other models, uses the Bedrock Converse streaming API.
 // Returns a channel for streaming BifrostStreamChunk objects or an error if the request fails.
 func (provider *BedrockProvider) ChatCompletionStream(ctx *schemas.BifrostContext, postHookRunner schemas.PostHookRunner, postHookSpanFinalizer func(context.Context), key schemas.Key, request *schemas.BifrostChatRequest) (chan *schemas.BifrostStreamChunk, *schemas.BifrostError) {
 	if err := providerUtils.CheckOperationAllowed(schemas.Bedrock, provider.customProviderConfig, schemas.ChatCompletionStreamRequest); err != nil {
 		return nil, err
 	}
-	jsonData, bifrostErr := providerUtils.CheckContextAndGetRequestBody(
-		ctx,
-		request,
-		func() (providerUtils.RequestBodyWithExtraParams, error) {
-			return ToBedrockChatCompletionRequest(ctx, request)
-		})
-	if bifrostErr != nil {
-		return nil, bifrostErr
+
+	var jsonData []byte
+
+	if schemas.IsAnthropicModel(request.Model) {
+		// Use Anthropic Messages API format with streaming
+		var bifrostErr *schemas.BifrostError
+		jsonData, bifrostErr = getBedrockAnthropicChatRequestBody(ctx, request, request.Model)
+		if bifrostErr != nil {
+			return nil, bifrostErr
+		}
+	} else {
+		var bifrostErr *schemas.BifrostError
+		jsonData, bifrostErr = providerUtils.CheckContextAndGetRequestBody(
+			ctx,
+			request,
+			func() (providerUtils.RequestBodyWithExtraParams, error) {
+				return ToBedrockChatCompletionRequest(ctx, request)
+			})
+		if bifrostErr != nil {
+			return nil, bifrostErr
+		}
 	}
 
-	resp, bifrostErr := provider.makeStreamingRequest(ctx, jsonData, key, request.Model, "converse-stream")
+	streamAction := "converse-stream"
+	if schemas.IsAnthropicModel(request.Model) {
+		streamAction = "invoke-with-response-stream"
+	}
+
+	resp, bifrostErr := provider.makeStreamingRequest(ctx, jsonData, key, request.Model, streamAction)
 	if bifrostErr != nil {
 		return nil, providerUtils.EnrichError(ctx, bifrostErr, jsonData, nil, provider.sendBackRawRequest, provider.sendBackRawResponse)
 	}
@@ -1144,44 +1200,36 @@ func (provider *BedrockProvider) ChatCompletionStream(ctx *schemas.BifrostContex
 		stopCancellation := providerUtils.SetupStreamCancellation(ctx, resp.Body, provider.logger)
 		defer stopCancellation()
 
-		// Process AWS Event Stream format
 		usage := &schemas.BifrostLLMUsage{}
 		var finishReason *string
 		chunkIndex := 0
-
-		// Process AWS Event Stream format using proper decoder
 		startTime := time.Now()
 		lastChunkTime := startTime
 		decoder := eventstream.NewDecoder()
-		payloadBuf := make([]byte, 0, 1024*1024) // 1MB payload buffer
+		payloadBuf := make([]byte, 0, 1024*1024)
 
 		// Bedrock does not provide a unique identifier for the stream, so we generate one ourselves
 		id := uuid.New().String()
 
-		// Check for structured output mode - if set, we need to intercept tool calls
-		// and convert them to content instead of forwarding as tool calls
 		var structuredOutputToolName string
 		if toolName, ok := ctx.Value(schemas.BifrostContextKeyStructuredOutputToolName).(string); ok {
 			structuredOutputToolName = toolName
 		}
-		var structuredOutputBuilder strings.Builder
-		var isAccumulatingStructuredOutput bool
 
 		streamState := NewBedrockStreamState()
+		var isAccumulatingStructuredOutput bool
+		var structuredOutputBuilder strings.Builder
 
 		for {
-			// If context was cancelled/timed out, let defer handle it
 			if ctx.Err() != nil {
 				return
 			}
 			// Decode a single EventStream message
 			message, err := decoder.Decode(idleReader, payloadBuf)
 			if err != nil {
-				// If context was cancelled/timed out, let defer handle it
 				if ctx.Err() != nil {
 					return
 				}
-				// End of stream - this is normal
 				if err == io.EOF {
 					break
 				}
@@ -1203,7 +1251,6 @@ func (provider *BedrockProvider) ChatCompletionStream(ctx *schemas.BifrostContex
 				return
 			}
 
-			// Process the decoded message payload (contains JSON for normal events)
 			if len(message.Payload) > 0 {
 				if msgTypeHeader := message.Headers.Get(":message-type"); msgTypeHeader != nil {
 					if msgType := msgTypeHeader.String(); msgType != "event" {
@@ -1234,105 +1281,203 @@ func (provider *BedrockProvider) ChatCompletionStream(ctx *schemas.BifrostContex
 					}
 				}
 
-				// Parse the JSON event into our typed structure
-				var streamEvent BedrockStreamEvent
-				if err := sonic.Unmarshal(message.Payload, &streamEvent); err != nil {
-					provider.logger.Debug("Failed to parse JSON from event buffer: %v, data: %s", err, string(message.Payload))
-					providerUtils.ProcessAndSendError(ctx, postHookRunner, err, responseChan, provider.logger, postHookSpanFinalizer)
-					return
-				}
+				if schemas.IsAnthropicModel(request.Model) {
+					// For Anthropic models via InvokeModel, each EventStream event wraps
+					// an Anthropic SSE chunk in its bytes field.
+					var chunkPayload struct {
+						Bytes []byte `json:"bytes"`
+					}
+					if err := sonic.Unmarshal(message.Payload, &chunkPayload); err != nil {
+						provider.logger.Debug("Failed to parse EventStream chunk payload: %v", err)
+						providerUtils.ProcessAndSendError(ctx, postHookRunner, err, responseChan, provider.logger, postHookSpanFinalizer)
+						return
+					}
 
-				if streamEvent.Usage != nil {
-					// Accumulate usage information instead of overwriting
-					// In some cases usage comes in multiple events, so we need to take the maximum values
-					if streamEvent.Usage.InputTokens > usage.PromptTokens {
-						usage.PromptTokens = streamEvent.Usage.InputTokens
+					var streamEvent anthropic.AnthropicStreamEvent
+					if err := sonic.Unmarshal(chunkPayload.Bytes, &streamEvent); err != nil {
+						provider.logger.Debug("Failed to parse Anthropic stream event: %v, data: %s", err, string(chunkPayload.Bytes))
+						providerUtils.ProcessAndSendError(ctx, postHookRunner, err, responseChan, provider.logger, postHookSpanFinalizer)
+						return
 					}
-					if streamEvent.Usage.OutputTokens > usage.CompletionTokens {
-						usage.CompletionTokens = streamEvent.Usage.OutputTokens
+
+					// Accumulate usage from Anthropic events
+					var usageToProcess *anthropic.AnthropicUsage
+					if streamEvent.Usage != nil {
+						usageToProcess = streamEvent.Usage
+					} else if streamEvent.Message != nil && streamEvent.Message.Usage != nil {
+						usageToProcess = streamEvent.Message.Usage
 					}
-					if streamEvent.Usage.TotalTokens > usage.TotalTokens {
-						usage.TotalTokens = streamEvent.Usage.TotalTokens
-					}
-					// Handle cached tokens if present
-					if streamEvent.Usage.CacheReadInputTokens > 0 {
-						if usage.PromptTokensDetails == nil {
-							usage.PromptTokensDetails = &schemas.ChatPromptTokensDetails{}
+					if usageToProcess != nil {
+						if usageToProcess.InputTokens > usage.PromptTokens {
+							usage.PromptTokens = usageToProcess.InputTokens
 						}
-						if streamEvent.Usage.CacheReadInputTokens > usage.PromptTokensDetails.CachedReadTokens {
-							usage.PromptTokensDetails.CachedReadTokens = streamEvent.Usage.CacheReadInputTokens
+						if usageToProcess.OutputTokens > usage.CompletionTokens {
+							usage.CompletionTokens = usageToProcess.OutputTokens
 						}
-					}
-					if streamEvent.Usage.CacheWriteInputTokens > 0 {
-						if usage.PromptTokensDetails == nil {
-							usage.PromptTokensDetails = &schemas.ChatPromptTokensDetails{}
+						calculatedTotal := usage.PromptTokens + usage.CompletionTokens
+						if calculatedTotal > usage.TotalTokens {
+							usage.TotalTokens = calculatedTotal
 						}
-						if streamEvent.Usage.CacheWriteInputTokens > usage.PromptTokensDetails.CachedWriteTokens {
-							usage.PromptTokensDetails.CachedWriteTokens = streamEvent.Usage.CacheWriteInputTokens
-						}
-						if streamEvent.Usage.CacheDetails != nil {
-							if usage.PromptTokensDetails.CachedWriteTokenDetails == nil {
-								usage.PromptTokensDetails.CachedWriteTokenDetails = &schemas.ChatCachedWriteTokenDetails{}
+						if usageToProcess.CacheReadInputTokens > 0 {
+							if usage.PromptTokensDetails == nil {
+								usage.PromptTokensDetails = &schemas.ChatPromptTokensDetails{}
 							}
-							for _, cacheDetail := range *streamEvent.Usage.CacheDetails {
-								if cacheDetail.TTL == BedrockCacheWriteTTL5m {
-									usage.PromptTokensDetails.CachedWriteTokenDetails.CachedWriteTokens5m = cacheDetail.InputTokens
-								}
-								if cacheDetail.TTL == BedrockCacheWriteTTL1h {
-									usage.PromptTokensDetails.CachedWriteTokenDetails.CachedWriteTokens1h = cacheDetail.InputTokens
-								}
+							if usageToProcess.CacheReadInputTokens > usage.PromptTokensDetails.CachedReadTokens {
+								usage.PromptTokensDetails.CachedReadTokens = usageToProcess.CacheReadInputTokens
 							}
 						}
+						if usageToProcess.CacheCreationInputTokens > 0 {
+							if usage.PromptTokensDetails == nil {
+								usage.PromptTokensDetails = &schemas.ChatPromptTokensDetails{}
+							}
+							if usageToProcess.CacheCreationInputTokens > usage.PromptTokensDetails.CachedWriteTokens {
+								usage.PromptTokensDetails.CachedWriteTokens = usageToProcess.CacheCreationInputTokens
+							}
+						}
 					}
-				}
 
-				if streamEvent.StopReason != nil {
-					finishReason = schemas.Ptr(anthropic.ConvertAnthropicFinishReasonToBifrost(anthropic.AnthropicStopReason(*streamEvent.StopReason)))
-
-					// Override finish reason for structured output
-					// When structured output is used, tool_use stop reason should appear as "stop" to the client
-					if structuredOutputToolName != "" && *finishReason == string(schemas.BifrostFinishReasonToolCalls) {
-						finishReason = schemas.Ptr(string(schemas.BifrostFinishReasonStop))
+					response, bifrostErr, isLastChunk := streamEvent.ToBifrostChatCompletionStream(ctx, structuredOutputToolName, nil)
+					if bifrostErr != nil {
+						ctx.SetValue(schemas.BifrostContextKeyStreamEndIndicator, true)
+						providerUtils.ProcessAndSendBifrostError(ctx, postHookRunner, bifrostErr, responseChan, provider.logger, postHookSpanFinalizer)
+						return
 					}
-				}
+					if response != nil {
+						response.ID = id
+						response.Model = request.Model
+						response.ExtraFields = schemas.BifrostResponseExtraFields{
+							ChunkIndex: chunkIndex,
+							Latency:    time.Since(lastChunkTime).Milliseconds(),
+						}
+						chunkIndex++
+						lastChunkTime = time.Now()
+						if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
+							response.ExtraFields.RawResponse = string(chunkPayload.Bytes)
+						}
+						providerUtils.ProcessAndSendResponse(ctx, postHookRunner, providerUtils.GetBifrostResponseForStreamResponse(nil, response, nil, nil, nil, nil), responseChan, postHookSpanFinalizer)
+					}
+					if isLastChunk {
+						break
+					}
+				} else {
+					// Converse API path: parse Bedrock Converse-specific stream events
+					var streamEvent BedrockStreamEvent
+					if err := sonic.Unmarshal(message.Payload, &streamEvent); err != nil {
+						provider.logger.Debug("Failed to parse JSON from event buffer: %v, data: %s", err, string(message.Payload))
+						providerUtils.ProcessAndSendError(ctx, postHookRunner, err, responseChan, provider.logger, postHookSpanFinalizer)
+						return
+					}
 
-				// Handle structured output: intercept tool calls for the structured output tool
-				// and convert them to content instead of forwarding as tool calls
-				if structuredOutputToolName != "" {
-					// Check for tool use start event
-					if streamEvent.Start != nil && streamEvent.Start.ToolUse != nil {
-						if streamEvent.Start.ToolUse.Name == structuredOutputToolName {
-							// This is the structured output tool - start accumulating, don't forward
-							isAccumulatingStructuredOutput = true
+					if streamEvent.Usage != nil {
+						if streamEvent.Usage.InputTokens > usage.PromptTokens {
+							usage.PromptTokens = streamEvent.Usage.InputTokens
+						}
+						if streamEvent.Usage.OutputTokens > usage.CompletionTokens {
+							usage.CompletionTokens = streamEvent.Usage.OutputTokens
+						}
+						if streamEvent.Usage.TotalTokens > usage.TotalTokens {
+							usage.TotalTokens = streamEvent.Usage.TotalTokens
+						}
+						if streamEvent.Usage.CacheReadInputTokens > 0 {
+							if usage.PromptTokensDetails == nil {
+								usage.PromptTokensDetails = &schemas.ChatPromptTokensDetails{}
+							}
+							if streamEvent.Usage.CacheReadInputTokens > usage.PromptTokensDetails.CachedReadTokens {
+								usage.PromptTokensDetails.CachedReadTokens = streamEvent.Usage.CacheReadInputTokens
+							}
+						}
+						if streamEvent.Usage.CacheWriteInputTokens > 0 {
+							if usage.PromptTokensDetails == nil {
+								usage.PromptTokensDetails = &schemas.ChatPromptTokensDetails{}
+							}
+							if streamEvent.Usage.CacheWriteInputTokens > usage.PromptTokensDetails.CachedWriteTokens {
+								usage.PromptTokensDetails.CachedWriteTokens = streamEvent.Usage.CacheWriteInputTokens
+							}
+							if streamEvent.Usage.CacheDetails != nil {
+								if usage.PromptTokensDetails.CachedWriteTokenDetails == nil {
+									usage.PromptTokensDetails.CachedWriteTokenDetails = &schemas.ChatCachedWriteTokenDetails{}
+								}
+								for _, cacheDetail := range *streamEvent.Usage.CacheDetails {
+									if cacheDetail.TTL == BedrockCacheWriteTTL5m {
+										usage.PromptTokensDetails.CachedWriteTokenDetails.CachedWriteTokens5m = cacheDetail.InputTokens
+									}
+									if cacheDetail.TTL == BedrockCacheWriteTTL1h {
+										usage.PromptTokensDetails.CachedWriteTokenDetails.CachedWriteTokens1h = cacheDetail.InputTokens
+									}
+								}
+							}
+						}
+					}
+
+					if streamEvent.StopReason != nil {
+						finishReason = schemas.Ptr(anthropic.ConvertAnthropicFinishReasonToBifrost(anthropic.AnthropicStopReason(*streamEvent.StopReason)))
+						if structuredOutputToolName != "" && *finishReason == string(schemas.BifrostFinishReasonToolCalls) {
+							finishReason = schemas.Ptr(string(schemas.BifrostFinishReasonStop))
+						}
+					}
+
+					// Handle structured output: intercept tool calls for the structured output tool
+					// and convert them to content instead of forwarding as tool calls
+					if structuredOutputToolName != "" {
+						// Check for tool use start event
+						if streamEvent.Start != nil && streamEvent.Start.ToolUse != nil {
+							if streamEvent.Start.ToolUse.Name == structuredOutputToolName {
+								// This is the structured output tool - start accumulating, don't forward
+								isAccumulatingStructuredOutput = true
+								continue
+							}
+						}
+
+						// Check for tool use delta event
+						if streamEvent.Delta != nil && streamEvent.Delta.ToolUse != nil && isAccumulatingStructuredOutput {
+							// Accumulate the input for tracking purposes
+							structuredOutputBuilder.WriteString(streamEvent.Delta.ToolUse.Input)
+
+							// Convert tool use delta to content delta
+							content := streamEvent.Delta.ToolUse.Input
+							response := &schemas.BifrostChatResponse{
+								ID:     id,
+								Model:  request.Model,
+								Object: "chat.completion.chunk",
+								Choices: []schemas.BifrostResponseChoice{
+									{
+										Index: 0,
+										ChatStreamResponseChoice: &schemas.ChatStreamResponseChoice{
+											Delta: &schemas.ChatStreamResponseChoiceDelta{
+												Content: &content,
+											},
+										},
+									},
+								},
+								ExtraFields: schemas.BifrostResponseExtraFields{
+									ChunkIndex: chunkIndex,
+									Latency:    time.Since(lastChunkTime).Milliseconds(),
+								},
+							}
+							chunkIndex++
+							lastChunkTime = time.Now()
+
+							if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
+								response.ExtraFields.RawResponse = string(message.Payload)
+							}
+
+							providerUtils.ProcessAndSendResponse(ctx, postHookRunner, providerUtils.GetBifrostResponseForStreamResponse(nil, response, nil, nil, nil, nil), responseChan, postHookSpanFinalizer)
 							continue
 						}
 					}
 
-					// Check for tool use delta event
-					if streamEvent.Delta != nil && streamEvent.Delta.ToolUse != nil && isAccumulatingStructuredOutput {
-						// Accumulate the input for tracking purposes
-						structuredOutputBuilder.WriteString(streamEvent.Delta.ToolUse.Input)
-
-						// Convert tool use delta to content delta
-						content := streamEvent.Delta.ToolUse.Input
-						response := &schemas.BifrostChatResponse{
-							ID:     id,
-							Model:  request.Model,
-							Object: "chat.completion.chunk",
-							Choices: []schemas.BifrostResponseChoice{
-								{
-									Index: 0,
-									ChatStreamResponseChoice: &schemas.ChatStreamResponseChoice{
-										Delta: &schemas.ChatStreamResponseChoiceDelta{
-											Content: &content,
-										},
-									},
-								},
-							},
-							ExtraFields: schemas.BifrostResponseExtraFields{
-								ChunkIndex: chunkIndex,
-								Latency:    time.Since(lastChunkTime).Milliseconds(),
-							},
+					response, bifrostErr, _ := streamEvent.ToBifrostChatCompletionStream(streamState)
+					if bifrostErr != nil {
+						ctx.SetValue(schemas.BifrostContextKeyStreamEndIndicator, true)
+						providerUtils.ProcessAndSendBifrostError(ctx, postHookRunner, bifrostErr, responseChan, provider.logger, postHookSpanFinalizer)
+						return
+					}
+					if response != nil {
+						response.ID = id
+						response.Model = request.Model
+						response.ExtraFields = schemas.BifrostResponseExtraFields{
+							ChunkIndex: chunkIndex,
+							Latency:    time.Since(lastChunkTime).Milliseconds(),
 						}
 						chunkIndex++
 						lastChunkTime = time.Now()
@@ -1342,31 +1487,7 @@ func (provider *BedrockProvider) ChatCompletionStream(ctx *schemas.BifrostContex
 						}
 
 						providerUtils.ProcessAndSendResponse(ctx, postHookRunner, providerUtils.GetBifrostResponseForStreamResponse(nil, response, nil, nil, nil, nil), responseChan, postHookSpanFinalizer)
-						continue
 					}
-				}
-
-				response, bifrostErr, _ := streamEvent.ToBifrostChatCompletionStream(streamState)
-				if bifrostErr != nil {
-					ctx.SetValue(schemas.BifrostContextKeyStreamEndIndicator, true)
-					providerUtils.ProcessAndSendBifrostError(ctx, postHookRunner, bifrostErr, responseChan, provider.logger, postHookSpanFinalizer)
-					return
-				}
-				if response != nil {
-					response.ID = id
-					response.Model = request.Model
-					response.ExtraFields = schemas.BifrostResponseExtraFields{
-						ChunkIndex: chunkIndex,
-						Latency:    time.Since(lastChunkTime).Milliseconds(),
-					}
-					chunkIndex++
-					lastChunkTime = time.Now()
-
-					if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
-						response.ExtraFields.RawResponse = string(message.Payload)
-					}
-
-					providerUtils.ProcessAndSendResponse(ctx, postHookRunner, providerUtils.GetBifrostResponseForStreamResponse(nil, response, nil, nil, nil, nil), responseChan, postHookSpanFinalizer)
 				}
 			}
 		}
@@ -1375,7 +1496,7 @@ func (provider *BedrockProvider) ChatCompletionStream(ctx *schemas.BifrostContex
 			usage.PromptTokens = usage.PromptTokens + usage.PromptTokensDetails.CachedReadTokens + usage.PromptTokensDetails.CachedWriteTokens
 		}
 
-		// Send final response
+		// Send final chunk with accumulated usage
 		response := providerUtils.CreateBifrostChatCompletionChunkResponse(id, usage, finishReason, chunkIndex, request.Model, 0)
 		// Set raw request if enabled
 		if providerUtils.ShouldSendBackRawRequest(ctx, provider.sendBackRawRequest) {
@@ -1389,27 +1510,40 @@ func (provider *BedrockProvider) ChatCompletionStream(ctx *schemas.BifrostContex
 	return responseChan, nil
 }
 
-// Responses performs a chat completion request to Anthropic's API.
-// It formats the request, sends it to Anthropic, and processes the response.
+// Responses performs a responses request to Bedrock's API.
+// For Anthropic models, uses the Anthropic Messages API format via the InvokeModel endpoint.
+// For all other models, uses the Bedrock Converse API.
 // Returns a BifrostResponse containing the completion results or an error if the request fails.
 func (provider *BedrockProvider) Responses(ctx *schemas.BifrostContext, key schemas.Key, request *schemas.BifrostResponsesRequest) (*schemas.BifrostResponsesResponse, *schemas.BifrostError) {
 	if err := providerUtils.CheckOperationAllowed(schemas.Bedrock, provider.customProviderConfig, schemas.ResponsesRequest); err != nil {
 		return nil, err
 	}
 
-	// Use centralized Bedrock converter
-	jsonData, bifrostErr := providerUtils.CheckContextAndGetRequestBody(
-		ctx,
-		request,
-		func() (providerUtils.RequestBodyWithExtraParams, error) {
-			return ToBedrockResponsesRequest(ctx, request)
-		})
-	if bifrostErr != nil {
-		return nil, bifrostErr
-	}
+	var jsonData []byte
+	var path string
 
-	// Format the path with proper model identifier
-	path := provider.getModelPath("converse", request.Model, key)
+	if schemas.IsAnthropicModel(request.Model) {
+		// Use Anthropic Messages API format via InvokeModel endpoint
+		var bifrostErr *schemas.BifrostError
+		jsonData, bifrostErr = getBedrockAnthropicResponsesRequestBody(ctx, request, request.Model)
+		if bifrostErr != nil {
+			return nil, bifrostErr
+		}
+		path = provider.getModelPath("invoke", request.Model, key)
+	} else {
+		// Use Bedrock Converse API for all other models
+		var bifrostErr *schemas.BifrostError
+		jsonData, bifrostErr = providerUtils.CheckContextAndGetRequestBody(
+			ctx,
+			request,
+			func() (providerUtils.RequestBodyWithExtraParams, error) {
+				return ToBedrockResponsesRequest(ctx, request)
+			})
+		if bifrostErr != nil {
+			return nil, bifrostErr
+		}
+		path = provider.getModelPath("converse", request.Model, key)
+	}
 
 	// Create the signed request
 	responseBody, latency, providerResponseHeaders, bifrostErr := provider.completeRequest(ctx, jsonData, path, key)
@@ -1420,37 +1554,57 @@ func (provider *BedrockProvider) Responses(ctx *schemas.BifrostContext, key sche
 		return nil, providerUtils.EnrichError(ctx, bifrostErr, jsonData, nil, provider.sendBackRawRequest, provider.sendBackRawResponse)
 	}
 
-	// pool the response
-	bedrockResponse := acquireBedrockChatResponse()
-	defer releaseBedrockChatResponse(bedrockResponse)
+	var bifrostResponse *schemas.BifrostResponsesResponse
 
-	// Parse the response using the new Bedrock type
-	if err := sonic.Unmarshal(responseBody, bedrockResponse); err != nil {
-		return nil, providerUtils.EnrichError(ctx, providerUtils.NewBifrostOperationError("failed to parse bedrock response", err), jsonData, responseBody, provider.sendBackRawRequest, provider.sendBackRawResponse)
-	}
+	if schemas.IsAnthropicModel(request.Model) {
+		// Parse Anthropic Messages API response
+		anthropicResponse := anthropic.AcquireAnthropicMessageResponse()
+		defer anthropic.ReleaseAnthropicMessageResponse(anthropicResponse)
 
-	// Convert using the new response converter
-	bifrostResponse, err := bedrockResponse.ToBifrostResponsesResponse(ctx)
-	if err != nil {
-		return nil, providerUtils.EnrichError(ctx, providerUtils.NewBifrostOperationError("failed to convert bedrock response", err), jsonData, responseBody, provider.sendBackRawRequest, provider.sendBackRawResponse)
-	}
+		rawRequest, rawResponse, err := providerUtils.HandleProviderResponse(responseBody, anthropicResponse, jsonData, providerUtils.ShouldSendBackRawRequest(ctx, provider.sendBackRawRequest), providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse))
+		if err != nil {
+			return nil, providerUtils.EnrichError(ctx, err, jsonData, responseBody, provider.sendBackRawRequest, provider.sendBackRawResponse)
+		}
+		bifrostResponse = anthropicResponse.ToBifrostResponsesResponse(ctx)
 
-	bifrostResponse.Model = request.Model
+		bifrostResponse.ExtraFields.Latency = latency.Milliseconds()
+		bifrostResponse.ExtraFields.ProviderResponseHeaders = providerResponseHeaders
 
-	// Set ExtraFields
-	bifrostResponse.ExtraFields.Latency = latency.Milliseconds()
-	bifrostResponse.ExtraFields.ProviderResponseHeaders = providerResponseHeaders
-
-	// Set raw request if enabled
-	if providerUtils.ShouldSendBackRawRequest(ctx, provider.sendBackRawRequest) {
-		providerUtils.ParseAndSetRawRequest(&bifrostResponse.ExtraFields, jsonData)
-	}
-
-	// Set raw response if enabled
-	if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
-		var rawResponse interface{}
-		if err := sonic.Unmarshal(responseBody, &rawResponse); err == nil {
+		if providerUtils.ShouldSendBackRawRequest(ctx, provider.sendBackRawRequest) {
+			bifrostResponse.ExtraFields.RawRequest = rawRequest
+		}
+		if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
 			bifrostResponse.ExtraFields.RawResponse = rawResponse
+		}
+	} else {
+		// Parse Bedrock Converse API response
+		bedrockResponse := acquireBedrockChatResponse()
+		defer releaseBedrockChatResponse(bedrockResponse)
+
+		if err := sonic.Unmarshal(responseBody, bedrockResponse); err != nil {
+			return nil, providerUtils.EnrichError(ctx, providerUtils.NewBifrostOperationError("failed to parse bedrock response", err), jsonData, responseBody, provider.sendBackRawRequest, provider.sendBackRawResponse)
+		}
+
+		// Convert using the new response converter
+		bifrostResponse, err := bedrockResponse.ToBifrostResponsesResponse(ctx)
+		if err != nil {
+			return nil, providerUtils.EnrichError(ctx, providerUtils.NewBifrostOperationError("failed to convert bedrock response", err), jsonData, responseBody, provider.sendBackRawRequest, provider.sendBackRawResponse)
+		}
+
+		bifrostResponse.Model = request.Model
+
+		// Set ExtraFields
+		bifrostResponse.ExtraFields.Latency = latency.Milliseconds()
+		bifrostResponse.ExtraFields.ProviderResponseHeaders = providerResponseHeaders
+
+		if providerUtils.ShouldSendBackRawRequest(ctx, provider.sendBackRawRequest) {
+			providerUtils.ParseAndSetRawRequest(&bifrostResponse.ExtraFields, jsonData)
+		}
+		if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
+			var rawResponse interface{}
+			if err := sonic.Unmarshal(responseBody, &rawResponse); err == nil {
+				bifrostResponse.ExtraFields.RawResponse = rawResponse
+			}
 		}
 	}
 
@@ -1465,17 +1619,34 @@ func (provider *BedrockProvider) ResponsesStream(ctx *schemas.BifrostContext, po
 		return nil, err
 	}
 
-	jsonData, bifrostErr := providerUtils.CheckContextAndGetRequestBody(
-		ctx,
-		request,
-		func() (providerUtils.RequestBodyWithExtraParams, error) {
-			return ToBedrockResponsesRequest(ctx, request)
-		})
-	if bifrostErr != nil {
-		return nil, bifrostErr
+	var jsonData []byte
+
+	if schemas.IsAnthropicModel(request.Model) {
+		// Use Anthropic Messages API format with streaming
+		var bifrostErr *schemas.BifrostError
+		jsonData, bifrostErr = getBedrockAnthropicResponsesRequestBody(ctx, request, request.Model)
+		if bifrostErr != nil {
+			return nil, bifrostErr
+		}
+	} else {
+		var bifrostErr *schemas.BifrostError
+		jsonData, bifrostErr = providerUtils.CheckContextAndGetRequestBody(
+			ctx,
+			request,
+			func() (providerUtils.RequestBodyWithExtraParams, error) {
+				return ToBedrockResponsesRequest(ctx, request)
+			})
+		if bifrostErr != nil {
+			return nil, bifrostErr
+		}
 	}
 
-	resp, bifrostErr := provider.makeStreamingRequest(ctx, jsonData, key, request.Model, "converse-stream")
+	streamAction := "converse-stream"
+	if schemas.IsAnthropicModel(request.Model) {
+		streamAction = "invoke-with-response-stream"
+	}
+
+	resp, bifrostErr := provider.makeStreamingRequest(ctx, jsonData, key, request.Model, streamAction)
 	if bifrostErr != nil {
 		return nil, providerUtils.EnrichError(ctx, bifrostErr, jsonData, nil, provider.sendBackRawRequest, provider.sendBackRawResponse)
 	}
@@ -1513,10 +1684,17 @@ func (provider *BedrockProvider) ResponsesStream(ctx *schemas.BifrostContext, po
 		usage := &schemas.ResponsesResponseUsage{}
 		chunkIndex := 0
 
-		// Create stream state for stateful conversions
+		// Create stream state for stateful conversions (used by Converse API path)
 		streamState := acquireBedrockResponsesStreamState()
 		streamState.Model = &request.Model
 		defer releaseBedrockResponsesStreamState(streamState)
+
+		// Create stream state for Anthropic path
+		var anthropicStreamState *anthropic.AnthropicResponsesStreamState
+		if schemas.IsAnthropicModel(request.Model) {
+			anthropicStreamState = anthropic.AcquireAnthropicResponsesStreamState()
+			defer anthropic.ReleaseAnthropicResponsesStreamState(anthropicStreamState)
+		}
 
 		// Check for structured output mode - if set, we need to intercept tool calls
 		// and convert them to content instead of forwarding as tool calls
@@ -1544,30 +1722,32 @@ func (provider *BedrockProvider) ResponsesStream(ctx *schemas.BifrostContext, po
 					return
 				}
 				if err == io.EOF {
-					// End of stream - finalize any open items
-					finalResponses := FinalizeBedrockStream(streamState, chunkIndex, usage)
-					for i, finalResponse := range finalResponses {
-						finalResponse.ExtraFields = schemas.BifrostResponseExtraFields{
-							ChunkIndex: chunkIndex,
-							Latency:    time.Since(lastChunkTime).Milliseconds(),
-						}
-						chunkIndex++
-						lastChunkTime = time.Now()
-
-						if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
-							finalResponse.ExtraFields.RawResponse = "{}" // Final event has no payload
-						}
-
-						if i == len(finalResponses)-1 {
-							// Set raw request if enabled
-							ctx.SetValue(schemas.BifrostContextKeyStreamEndIndicator, true)
-							if providerUtils.ShouldSendBackRawRequest(ctx, provider.sendBackRawRequest) {
-								providerUtils.ParseAndSetRawRequest(&finalResponse.ExtraFields, jsonData)
+					// For Converse API: finalize any open items at end of stream.
+					// For Anthropic path the stream terminates via isLastChunk signal instead.
+					if !schemas.IsAnthropicModel(request.Model) {
+						finalResponses := FinalizeBedrockStream(streamState, chunkIndex, usage)
+						for i, finalResponse := range finalResponses {
+							finalResponse.ExtraFields = schemas.BifrostResponseExtraFields{
+								ChunkIndex: chunkIndex,
+								Latency:    time.Since(lastChunkTime).Milliseconds(),
 							}
-							finalResponse.ExtraFields.Latency = time.Since(startTime).Milliseconds()
-						}
+							chunkIndex++
+							lastChunkTime = time.Now()
 
-						providerUtils.ProcessAndSendResponse(ctx, postHookRunner, providerUtils.GetBifrostResponseForStreamResponse(nil, nil, finalResponse, nil, nil, nil), responseChan, postHookSpanFinalizer)
+							if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
+								finalResponse.ExtraFields.RawResponse = "{}" // Final event has no payload
+							}
+
+							if i == len(finalResponses)-1 {
+								ctx.SetValue(schemas.BifrostContextKeyStreamEndIndicator, true)
+								if providerUtils.ShouldSendBackRawRequest(ctx, provider.sendBackRawRequest) {
+									providerUtils.ParseAndSetRawRequest(&finalResponse.ExtraFields, jsonData)
+								}
+								finalResponse.ExtraFields.Latency = time.Since(startTime).Milliseconds()
+							}
+
+							providerUtils.ProcessAndSendResponse(ctx, postHookRunner, providerUtils.GetBifrostResponseForStreamResponse(nil, nil, finalResponse, nil, nil, nil), responseChan, postHookSpanFinalizer)
+						}
 					}
 					break
 				}
@@ -1620,115 +1800,192 @@ func (provider *BedrockProvider) ResponsesStream(ctx *schemas.BifrostContext, po
 					}
 				}
 
-				// Parse the JSON event into our typed structure
-				var streamEvent BedrockStreamEvent
-				if err := sonic.Unmarshal(message.Payload, &streamEvent); err != nil {
-					provider.logger.Debug("Failed to parse JSON from event buffer: %v, data: %s", err, string(message.Payload))
-					providerUtils.ProcessAndSendError(ctx, postHookRunner, err, responseChan, provider.logger, postHookSpanFinalizer)
-					return
-				}
+				if schemas.IsAnthropicModel(request.Model) {
+					// For Anthropic models via InvokeModel, each EventStream event wraps
+					// an Anthropic SSE chunk in its bytes field.
+					var chunkPayload struct {
+						Bytes []byte `json:"bytes"`
+					}
+					if err := sonic.Unmarshal(message.Payload, &chunkPayload); err != nil {
+						provider.logger.Debug("Failed to parse EventStream chunk payload: %v", err)
+						providerUtils.ProcessAndSendError(ctx, postHookRunner, err, responseChan, provider.logger, postHookSpanFinalizer)
+						return
+					}
 
-				if streamEvent.Usage != nil {
-					// Accumulate usage information instead of overwriting
-					// In some cases usage comes in multiple events, so we need to take the maximum values
-					if streamEvent.Usage.InputTokens > usage.InputTokens {
-						usage.InputTokens = streamEvent.Usage.InputTokens
+					var streamEvent anthropic.AnthropicStreamEvent
+					if err := sonic.Unmarshal(chunkPayload.Bytes, &streamEvent); err != nil {
+						provider.logger.Debug("Failed to parse Anthropic stream event: %v, data: %s", err, string(chunkPayload.Bytes))
+						providerUtils.ProcessAndSendError(ctx, postHookRunner, err, responseChan, provider.logger, postHookSpanFinalizer)
+						return
 					}
-					if streamEvent.Usage.OutputTokens > usage.OutputTokens {
-						usage.OutputTokens = streamEvent.Usage.OutputTokens
+
+					// Accumulate usage from Anthropic events
+					var usageToProcess *anthropic.AnthropicUsage
+					if streamEvent.Usage != nil {
+						usageToProcess = streamEvent.Usage
+					} else if streamEvent.Message != nil && streamEvent.Message.Usage != nil {
+						usageToProcess = streamEvent.Message.Usage
 					}
-					if streamEvent.Usage.TotalTokens > usage.TotalTokens {
-						usage.TotalTokens = streamEvent.Usage.TotalTokens
-					}
-					// Handle cached tokens if present
-					if streamEvent.Usage.CacheReadInputTokens > 0 {
-						if usage.InputTokensDetails == nil {
-							usage.InputTokensDetails = &schemas.ResponsesResponseInputTokens{}
+					if usageToProcess != nil {
+						if usageToProcess.InputTokens > usage.InputTokens {
+							usage.InputTokens = usageToProcess.InputTokens
 						}
-						if streamEvent.Usage.CacheReadInputTokens > usage.InputTokensDetails.CachedReadTokens {
-							usage.InputTokensDetails.CachedReadTokens = streamEvent.Usage.CacheReadInputTokens
+						if usageToProcess.OutputTokens > usage.OutputTokens {
+							usage.OutputTokens = usageToProcess.OutputTokens
 						}
-					}
-					if streamEvent.Usage.CacheWriteInputTokens > 0 {
-						if usage.InputTokensDetails == nil {
-							usage.InputTokensDetails = &schemas.ResponsesResponseInputTokens{}
+						calculatedTotal := usage.InputTokens + usage.OutputTokens
+						if calculatedTotal > usage.TotalTokens {
+							usage.TotalTokens = calculatedTotal
 						}
-						if streamEvent.Usage.CacheWriteInputTokens > usage.InputTokensDetails.CachedWriteTokens {
-							usage.InputTokensDetails.CachedWriteTokens = streamEvent.Usage.CacheWriteInputTokens
-						}
-						if streamEvent.Usage.CacheDetails != nil {
-							if usage.InputTokensDetails.CachedWriteTokenDetails == nil {
-								usage.InputTokensDetails.CachedWriteTokenDetails = &schemas.ChatCachedWriteTokenDetails{}
+						if usageToProcess.CacheReadInputTokens > 0 {
+							if usage.InputTokensDetails == nil {
+								usage.InputTokensDetails = &schemas.ResponsesResponseInputTokens{}
 							}
-							for _, cacheDetail := range *streamEvent.Usage.CacheDetails {
-								if cacheDetail.TTL == BedrockCacheWriteTTL5m {
-									usage.InputTokensDetails.CachedWriteTokenDetails.CachedWriteTokens5m = cacheDetail.InputTokens
-								}
-								if cacheDetail.TTL == BedrockCacheWriteTTL1h {
-									usage.InputTokensDetails.CachedWriteTokenDetails.CachedWriteTokens1h = cacheDetail.InputTokens
-								}
+							if usageToProcess.CacheReadInputTokens > usage.InputTokensDetails.CachedReadTokens {
+								usage.InputTokensDetails.CachedReadTokens = usageToProcess.CacheReadInputTokens
 							}
 						}
+						if usageToProcess.CacheCreationInputTokens > 0 {
+							if usage.InputTokensDetails == nil {
+								usage.InputTokensDetails = &schemas.ResponsesResponseInputTokens{}
+							}
+							if usageToProcess.CacheCreationInputTokens > usage.InputTokensDetails.CachedWriteTokens {
+								usage.InputTokensDetails.CachedWriteTokens = usageToProcess.CacheCreationInputTokens
+							}
+						}
 					}
-				}
 
-				// Handle structured output: intercept tool calls for the structured output tool
-				// and convert them to content instead of forwarding as tool calls
-				if structuredOutputToolName != "" {
-					// Check for tool use start event
-					if streamEvent.Start != nil && streamEvent.Start.ToolUse != nil {
-						if streamEvent.Start.ToolUse.Name == structuredOutputToolName {
-							// This is the structured output tool - start accumulating, don't forward
-							isAccumulatingStructuredOutput = true
+					responses, bifrostErr, isLastChunk := streamEvent.ToBifrostResponsesStream(ctx, chunkIndex, anthropicStreamState)
+					if bifrostErr != nil {
+						ctx.SetValue(schemas.BifrostContextKeyStreamEndIndicator, true)
+						providerUtils.ProcessAndSendBifrostError(ctx, postHookRunner, bifrostErr, responseChan, provider.logger, postHookSpanFinalizer)
+						return
+					}
+					for _, response := range responses {
+						if response != nil {
+							response.ExtraFields = schemas.BifrostResponseExtraFields{
+								ChunkIndex: chunkIndex,
+								Latency:    time.Since(lastChunkTime).Milliseconds(),
+							}
+							chunkIndex++
+							lastChunkTime = time.Now()
+							if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
+								response.ExtraFields.RawResponse = string(chunkPayload.Bytes)
+							}
+							providerUtils.ProcessAndSendResponse(ctx, postHookRunner, providerUtils.GetBifrostResponseForStreamResponse(nil, nil, response, nil, nil, nil), responseChan, postHookSpanFinalizer)
+						}
+					}
+					if isLastChunk {
+						break
+					}
+				} else {
+					// Converse API path: parse Bedrock Converse-specific stream events
+					var streamEvent BedrockStreamEvent
+					if err := sonic.Unmarshal(message.Payload, &streamEvent); err != nil {
+						provider.logger.Debug("Failed to parse JSON from event buffer: %v, data: %s", err, string(message.Payload))
+						providerUtils.ProcessAndSendError(ctx, postHookRunner, err, responseChan, provider.logger, postHookSpanFinalizer)
+						return
+					}
+
+					if streamEvent.Usage != nil {
+						if streamEvent.Usage.InputTokens > usage.InputTokens {
+							usage.InputTokens = streamEvent.Usage.InputTokens
+						}
+						if streamEvent.Usage.OutputTokens > usage.OutputTokens {
+							usage.OutputTokens = streamEvent.Usage.OutputTokens
+						}
+						if streamEvent.Usage.TotalTokens > usage.TotalTokens {
+							usage.TotalTokens = streamEvent.Usage.TotalTokens
+						}
+						if streamEvent.Usage.CacheReadInputTokens > 0 {
+							if usage.InputTokensDetails == nil {
+								usage.InputTokensDetails = &schemas.ResponsesResponseInputTokens{}
+							}
+							if streamEvent.Usage.CacheReadInputTokens > usage.InputTokensDetails.CachedReadTokens {
+								usage.InputTokensDetails.CachedReadTokens = streamEvent.Usage.CacheReadInputTokens
+							}
+						}
+						if streamEvent.Usage.CacheWriteInputTokens > 0 {
+							if usage.InputTokensDetails == nil {
+								usage.InputTokensDetails = &schemas.ResponsesResponseInputTokens{}
+							}
+							if streamEvent.Usage.CacheWriteInputTokens > usage.InputTokensDetails.CachedWriteTokens {
+								usage.InputTokensDetails.CachedWriteTokens = streamEvent.Usage.CacheWriteInputTokens
+							}
+							if streamEvent.Usage.CacheDetails != nil {
+								if usage.InputTokensDetails.CachedWriteTokenDetails == nil {
+									usage.InputTokensDetails.CachedWriteTokenDetails = &schemas.ChatCachedWriteTokenDetails{}
+								}
+								for _, cacheDetail := range *streamEvent.Usage.CacheDetails {
+									if cacheDetail.TTL == BedrockCacheWriteTTL5m {
+										usage.InputTokensDetails.CachedWriteTokenDetails.CachedWriteTokens5m = cacheDetail.InputTokens
+									}
+									if cacheDetail.TTL == BedrockCacheWriteTTL1h {
+										usage.InputTokensDetails.CachedWriteTokenDetails.CachedWriteTokens1h = cacheDetail.InputTokens
+									}
+								}
+							}
+						}
+					}
+
+					// Handle structured output: intercept tool calls for the structured output tool
+					// and convert them to content instead of forwarding as tool calls
+					if structuredOutputToolName != "" {
+						// Check for tool use start event
+						if streamEvent.Start != nil && streamEvent.Start.ToolUse != nil {
+							if streamEvent.Start.ToolUse.Name == structuredOutputToolName {
+								// This is the structured output tool - start accumulating, don't forward
+								isAccumulatingStructuredOutput = true
+								continue
+							}
+						}
+
+						// Check for tool use delta event
+						if streamEvent.Delta != nil && streamEvent.Delta.ToolUse != nil && isAccumulatingStructuredOutput {
+							// Convert tool use delta to text delta
+							content := streamEvent.Delta.ToolUse.Input
+							response := &schemas.BifrostResponsesStreamResponse{
+								Type:           schemas.ResponsesStreamResponseTypeOutputTextDelta,
+								SequenceNumber: chunkIndex,
+								Delta:          &content,
+								ExtraFields: schemas.BifrostResponseExtraFields{
+									ChunkIndex: chunkIndex,
+									Latency:    time.Since(lastChunkTime).Milliseconds(),
+								},
+							}
+							chunkIndex++
+							lastChunkTime = time.Now()
+
+							if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
+								response.ExtraFields.RawResponse = string(message.Payload)
+							}
+
+							providerUtils.ProcessAndSendResponse(ctx, postHookRunner, providerUtils.GetBifrostResponseForStreamResponse(nil, nil, response, nil, nil, nil), responseChan, postHookSpanFinalizer)
 							continue
 						}
 					}
 
-					// Check for tool use delta event
-					if streamEvent.Delta != nil && streamEvent.Delta.ToolUse != nil && isAccumulatingStructuredOutput {
-						// Convert tool use delta to text delta
-						content := streamEvent.Delta.ToolUse.Input
-						response := &schemas.BifrostResponsesStreamResponse{
-							Type:           schemas.ResponsesStreamResponseTypeOutputTextDelta,
-							SequenceNumber: chunkIndex,
-							Delta:          &content,
-							ExtraFields: schemas.BifrostResponseExtraFields{
+					responses, bifrostErr, _ := streamEvent.ToBifrostResponsesStream(chunkIndex, streamState)
+					if bifrostErr != nil {
+						ctx.SetValue(schemas.BifrostContextKeyStreamEndIndicator, true)
+						providerUtils.ProcessAndSendBifrostError(ctx, postHookRunner, bifrostErr, responseChan, provider.logger, postHookSpanFinalizer)
+						return
+					}
+					for _, response := range responses {
+						if response != nil {
+							response.ExtraFields = schemas.BifrostResponseExtraFields{
 								ChunkIndex: chunkIndex,
 								Latency:    time.Since(lastChunkTime).Milliseconds(),
-							},
+							}
+							chunkIndex++
+							lastChunkTime = time.Now()
+
+							if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
+								response.ExtraFields.RawResponse = string(message.Payload)
+							}
+
+							providerUtils.ProcessAndSendResponse(ctx, postHookRunner, providerUtils.GetBifrostResponseForStreamResponse(nil, nil, response, nil, nil, nil), responseChan, postHookSpanFinalizer)
 						}
-						chunkIndex++
-						lastChunkTime = time.Now()
-
-						if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
-							response.ExtraFields.RawResponse = string(message.Payload)
-						}
-
-						providerUtils.ProcessAndSendResponse(ctx, postHookRunner, providerUtils.GetBifrostResponseForStreamResponse(nil, nil, response, nil, nil, nil), responseChan, postHookSpanFinalizer)
-						continue
-					}
-				}
-
-				responses, bifrostErr, _ := streamEvent.ToBifrostResponsesStream(chunkIndex, streamState)
-				if bifrostErr != nil {
-					ctx.SetValue(schemas.BifrostContextKeyStreamEndIndicator, true)
-					providerUtils.ProcessAndSendBifrostError(ctx, postHookRunner, bifrostErr, responseChan, provider.logger, postHookSpanFinalizer)
-					return
-				}
-				for _, response := range responses {
-					if response != nil {
-						response.ExtraFields = schemas.BifrostResponseExtraFields{
-							ChunkIndex: chunkIndex,
-							Latency:    time.Since(lastChunkTime).Milliseconds(),
-						}
-						chunkIndex++
-						lastChunkTime = time.Now()
-
-						if providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse) {
-							response.ExtraFields.RawResponse = string(message.Payload)
-						}
-
-						providerUtils.ProcessAndSendResponse(ctx, postHookRunner, providerUtils.GetBifrostResponseForStreamResponse(nil, nil, response, nil, nil, nil), responseChan, postHookSpanFinalizer)
 					}
 				}
 			}

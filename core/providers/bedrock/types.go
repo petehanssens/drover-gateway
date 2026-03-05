@@ -11,6 +11,10 @@ import (
 // DefaultBedrockRegion is the default region for Bedrock
 const DefaultBedrockRegion = "us-east-1"
 
+// DefaultBedrockAnthropicVersion is the anthropic_version required for Bedrock's InvokeModel endpoint
+// when using the Anthropic Messages API format.
+const DefaultBedrockAnthropicVersion = "bedrock-2023-05-31"
+
 // bedrockSigningService is the SigV4 service name used when signing all Bedrock
 // API requests. AWS requires "bedrock" as the credential scope service for both
 // bedrock-runtime and bedrock-agent-runtime endpoints.
