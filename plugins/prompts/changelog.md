@@ -1,3 +1,0 @@
-- feat: add prompts plugin with direct key header resolver
-- feat: add per-user OAuth consent flow with identity selection and MCP authentication
-- feat: add selective message inclusion when committing prompt sessions
