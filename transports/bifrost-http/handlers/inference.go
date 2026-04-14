@@ -520,13 +520,13 @@ type ContainerCreateRequest struct {
 
 // Helper functions
 
-// enableRawRequestResponseForContainer sets context flags to always capture raw request/response
-// for container operations. Container operations don't have model-specific content, so raw
-// data is useful for debugging and should be enabled by default.
+// enableRawRequestResponseForContainer sets per-request overrides to always capture and
+// send back raw request/response for container operations. Container operations don't have
+// model-specific content, so raw data is useful for debugging and should be enabled by default.
 func enableRawRequestResponseForContainer(bifrostCtx *schemas.BifrostContext) {
 	bifrostCtx.SetValue(schemas.BifrostContextKeySendBackRawRequest, true)
 	bifrostCtx.SetValue(schemas.BifrostContextKeySendBackRawResponse, true)
-	bifrostCtx.SetValue(schemas.BifrostContextKeyRawRequestResponseForLogging, true)
+	bifrostCtx.SetValue(schemas.BifrostContextKeyStoreRawRequestResponse, true)
 }
 
 // parseFallbacks extracts fallbacks from string array and converts to Fallback structs

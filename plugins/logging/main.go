@@ -79,24 +79,29 @@ func applyLargePayloadPreviews(ctx *schemas.BifrostContext, updateData *UpdateLo
 	}
 }
 
-func applyLargePayloadPreviewsToEntry(ctx *schemas.BifrostContext, entry *logstore.Log) {
+func applyLargePayloadPreviewsToEntry(ctx *schemas.BifrostContext, entry *logstore.Log, contentLoggingEnabled bool) {
 	if ctx == nil || entry == nil {
 		return
 	}
 
 	updateData := &UpdateLogData{}
 	applyLargePayloadPreviews(ctx, updateData)
+	shouldStoreRaw, _ := ctx.Value(schemas.BifrostContextKeyShouldStoreRawInLogs).(bool)
 
 	if updateData.IsLargePayloadRequest {
 		entry.IsLargePayloadRequest = true
-		if preview, ok := updateData.RawRequest.(string); ok {
-			entry.RawRequest = preview
+		if shouldStoreRaw && contentLoggingEnabled {
+			if preview, ok := updateData.RawRequest.(string); ok {
+				entry.RawRequest = preview
+			}
 		}
 	}
 	if updateData.IsLargePayloadResponse {
 		entry.IsLargePayloadResponse = true
-		if preview, ok := updateData.RawResponse.(string); ok {
-			entry.RawResponse = preview
+		if shouldStoreRaw && contentLoggingEnabled {
+			if preview, ok := updateData.RawResponse.(string); ok {
+				entry.RawResponse = preview
+			}
 		}
 	}
 }
@@ -689,6 +694,8 @@ func (p *LoggerPlugin) PostLLMHook(ctx *schemas.BifrostContext, result *schemas.
 	numberOfRetries := bifrost.GetIntFromContext(ctx, schemas.BifrostContextKeyNumberOfRetries)
 
 	requestType, _, originalModelRequested, resolvedModelUsed := bifrost.GetResponseFields(result, bifrostErr)
+	shouldStoreRaw, _ := ctx.Value(schemas.BifrostContextKeyShouldStoreRawInLogs).(bool)
+	contentLoggingEnabled := p.disableContentLogging == nil || !*p.disableContentLogging
 
 	isFinalChunk := bifrost.IsFinalChunk(ctx)
 
@@ -738,7 +745,7 @@ func (p *LoggerPlugin) PostLLMHook(ctx *schemas.BifrostContext, result *schemas.
 				entry.ErrorDetails = string(data)
 			}
 			entry.ErrorDetailsParsed = bifrostErr
-			applyLargePayloadPreviewsToEntry(ctx, entry)
+			applyLargePayloadPreviewsToEntry(ctx, entry, contentLoggingEnabled)
 			p.storeOrEnqueueEntry(ctx, entry, p.makePostWriteCallback(nil))
 		} else {
 			p.logger.Warn("no pending log data found for request %s, skipping log write", requestID)
@@ -781,7 +788,7 @@ func (p *LoggerPlugin) PostLLMHook(ctx *schemas.BifrostContext, result *schemas.
 			entry.ErrorDetails = string(data)
 		}
 		entry.ErrorDetailsParsed = bifrostErr
-		if p.disableContentLogging == nil || !*p.disableContentLogging {
+		if shouldStoreRaw && contentLoggingEnabled {
 			if bifrostErr.ExtraFields.RawRequest != nil {
 				rawReqBytes, err := sonic.Marshal(bifrostErr.ExtraFields.RawRequest)
 				if err == nil {
@@ -796,7 +803,7 @@ func (p *LoggerPlugin) PostLLMHook(ctx *schemas.BifrostContext, result *schemas.
 				}
 			}
 		}
-		applyLargePayloadPreviewsToEntry(ctx, entry)
+		applyLargePayloadPreviewsToEntry(ctx, entry, contentLoggingEnabled)
 		p.storeOrEnqueueEntry(ctx, entry, p.makePostWriteCallback(nil))
 		p.scheduleDeferredUsageUpdate(ctx, requestID, entry.TokenUsageParsed != nil)
 		return result, bifrostErr, nil
@@ -828,7 +835,7 @@ func (p *LoggerPlugin) PostLLMHook(ctx *schemas.BifrostContext, result *schemas.
 		} else if isFinalChunk {
 			// Apply streaming output fields to the entry
 			entry.Stream = true
-			p.applyStreamingOutputToEntry(entry, streamResponse)
+			p.applyStreamingOutputToEntry(entry, streamResponse, shouldStoreRaw)
 		}
 		// Backfill passthrough status_code from response (streaming path)
 		if result != nil && result.PassthroughResponse != nil {
@@ -840,7 +847,7 @@ func (p *LoggerPlugin) PostLLMHook(ctx *schemas.BifrostContext, result *schemas.
 				entry.Status = "error"
 			}
 		}
-		applyLargePayloadPreviewsToEntry(ctx, entry)
+		applyLargePayloadPreviewsToEntry(ctx, entry, contentLoggingEnabled)
 
 		if requestType != schemas.PassthroughStreamRequest && tracer != nil && traceID != "" {
 			tracer.CleanupStreamAccumulator(traceID)
@@ -865,24 +872,23 @@ func (p *LoggerPlugin) PostLLMHook(ctx *schemas.BifrostContext, result *schemas.
 		// Realtime turns that fail mid-stream still need their input transcript
 		// surfaced — backfill from bifrostErr.ExtraFields.RawRequest if present.
 		if requestType == schemas.RealtimeRequest {
-			contentLoggingEnabled := p.disableContentLogging == nil || !*p.disableContentLogging
-			applyRealtimeRawRequestBackfill(entry, bifrostErr.ExtraFields.RawRequest, contentLoggingEnabled)
+			applyRealtimeRawRequestBackfill(entry, bifrostErr.ExtraFields.RawRequest, contentLoggingEnabled, shouldStoreRaw)
 		}
 	} else if result != nil {
 		entry.Status = "success"
 		extraFields := result.GetExtraFields()
 		applyModelAlias(entry, extraFields.OriginalModelRequested, extraFields.ResolvedModelUsed)
 		if requestType == schemas.RealtimeRequest {
-			p.applyRealtimeOutputToEntry(entry, result)
+			p.applyRealtimeOutputToEntry(entry, result, shouldStoreRaw)
 		} else {
-			p.applyNonStreamingOutputToEntry(entry, result)
+			p.applyNonStreamingOutputToEntry(entry, result, shouldStoreRaw)
 		}
 		// Flip status for passthrough error responses (4xx/5xx from provider)
 		if isPassthroughErrorResponse(result) {
 			entry.Status = "error"
 		}
 	}
-	applyLargePayloadPreviewsToEntry(ctx, entry)
+	applyLargePayloadPreviewsToEntry(ctx, entry, contentLoggingEnabled)
 
 	// Calculate cost
 	var cacheDebug *schemas.BifrostCacheDebug

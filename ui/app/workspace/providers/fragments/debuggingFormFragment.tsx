@@ -3,12 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getErrorMessage, setProviderFormDirtyState, useAppDispatch } from "@/lib/store";
 import { useUpdateProviderMutation } from "@/lib/store/apis/providersApi";
 import { ModelProvider } from "@/lib/types/config";
 import { debuggingFormSchema, type DebuggingFormSchema } from "@/lib/types/schemas";
 import { RbacOperation, RbacResource, useRbac } from "@enterprise/lib";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Info } from "lucide-react";
 import { useEffect } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { toast } from "sonner";
@@ -32,7 +34,9 @@ export function DebuggingFormFragment({ provider }: DebuggingFormFragmentProps) 
 			store_raw_request_response: provider.store_raw_request_response ?? false,
 		},
 	});
-	const storeRawEnabled = form.watch("store_raw_request_response");
+	const sendBackRawRequest = form.watch("send_back_raw_request");
+	const sendBackRawResponse = form.watch("send_back_raw_response");
+	const storeRawRequestResponse = form.watch("store_raw_request_response");
 
 	useEffect(() => {
 		dispatch(setProviderFormDirtyState(form.formState.isDirty));
@@ -69,9 +73,93 @@ export function DebuggingFormFragment({ provider }: DebuggingFormFragmentProps) 
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 px-6" data-testid="provider-config-debugging-content">
-				<div className="space-y-0">
+				<div className="space-y-4">
 
-					{/* Parent: Store Raw Request/Response */}
+					{/* Send Back Raw Request */}
+					<FormField
+						control={form.control}
+						name="send_back_raw_request"
+						render={({ field }) => (
+							<FormItem>
+								<div className="flex items-center justify-between space-x-2">
+									<div className="space-y-0.5">
+										<div className="flex items-center gap-1.5">
+											<FormLabel>Send Back Raw Request</FormLabel>
+											<TooltipProvider>
+												<Tooltip>
+													<TooltipTrigger asChild data-testid="provider-debugging-send-back-raw-request-tooltip-trigger">
+														<Info className="text-muted-foreground h-3 w-3 cursor-pointer" />
+													</TooltipTrigger>
+													<TooltipContent>
+														Override per-request with header: <code>x-bf-send-back-raw-request: {String(!sendBackRawRequest)}</code>
+													</TooltipContent>
+												</Tooltip>
+											</TooltipProvider>
+										</div>
+										<p className="text-muted-foreground text-xs">
+											Include the raw provider request alongside the parsed request in the API response.
+										</p>
+									</div>
+									<FormControl>
+										<Switch
+											size="md"
+											checked={field.value}
+											disabled={!hasUpdateProviderAccess}
+											onCheckedChange={(checked) => {
+												field.onChange(checked);
+												form.trigger("send_back_raw_request");
+											}}
+										/>
+									</FormControl>
+								</div>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					{/* Send Back Raw Response */}
+					<FormField
+						control={form.control}
+						name="send_back_raw_response"
+						render={({ field }) => (
+							<FormItem>
+								<div className="flex items-center justify-between space-x-2">
+									<div className="space-y-0.5">
+										<div className="flex items-center gap-1.5">
+											<FormLabel>Send Back Raw Response</FormLabel>
+											<TooltipProvider>
+												<Tooltip>
+													<TooltipTrigger asChild data-testid="provider-debugging-send-back-raw-response-tooltip-trigger">
+														<Info className="text-muted-foreground h-3 w-3 cursor-pointer" />
+													</TooltipTrigger>
+													<TooltipContent>
+														Override per-request with header: <code>x-bf-send-back-raw-response: {String(!sendBackRawResponse)}</code>
+													</TooltipContent>
+												</Tooltip>
+											</TooltipProvider>
+										</div>
+										<p className="text-muted-foreground text-xs">
+											Include the raw provider response alongside the parsed response in the API response.
+										</p>
+									</div>
+									<FormControl>
+										<Switch
+											size="md"
+											checked={field.value}
+											disabled={!hasUpdateProviderAccess}
+											onCheckedChange={(checked) => {
+												field.onChange(checked);
+												form.trigger("send_back_raw_response");
+											}}
+										/>
+									</FormControl>
+								</div>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					{/* Store Raw Request/Response */}
 					<FormField
 						control={form.control}
 						name="store_raw_request_response"
@@ -79,9 +167,21 @@ export function DebuggingFormFragment({ provider }: DebuggingFormFragmentProps) 
 							<FormItem>
 								<div className="flex items-center justify-between space-x-2">
 									<div className="space-y-0.5">
-										<FormLabel>Enable Raw Request/Response</FormLabel>
+										<div className="flex items-center gap-1.5">
+											<FormLabel>Store Raw Request/Response</FormLabel>
+											<TooltipProvider>
+												<Tooltip>
+													<TooltipTrigger asChild data-testid="provider-debugging-store-raw-request-response-tooltip-trigger">
+														<Info className="text-muted-foreground h-3 w-3 cursor-pointer" />
+													</TooltipTrigger>
+													<TooltipContent>
+														Override per-request with header: <code>x-bf-store-raw-request-response: {String(!storeRawRequestResponse)}</code>
+													</TooltipContent>
+												</Tooltip>
+											</TooltipProvider>
+										</div>
 										<p className="text-muted-foreground text-xs">
-											Capture the raw provider request and response for internal logging. Raw payloads are not returned to clients unless send_back_raw_request and send_back_raw_response are also enabled.
+											Persist raw request and response payloads in log records.
 										</p>
 									</div>
 									<FormControl>
@@ -92,10 +192,6 @@ export function DebuggingFormFragment({ provider }: DebuggingFormFragmentProps) 
 											disabled={!hasUpdateProviderAccess}
 											onCheckedChange={(checked) => {
 												field.onChange(checked);
-												if (!checked) {
-													form.setValue("send_back_raw_request", false, { shouldDirty: true });
-													form.setValue("send_back_raw_response", false, { shouldDirty: true });
-												}
 												form.trigger("store_raw_request_response");
 											}}
 										/>
@@ -106,80 +202,6 @@ export function DebuggingFormFragment({ provider }: DebuggingFormFragmentProps) 
 						)}
 					/>
 
-					{/* Children with tree connectors */}
-					<div className="relative mt-3 space-y-3 pl-6">
-
-						{/* Child 1: Send Back Raw Request — trunk continues past this to next sibling */}
-						<div className="relative">
-							{/* Vertical trunk — extends past bottom by the gap (space-y-3 = 0.75rem) to connect with child 2 */}
-							<div className="absolute -left-6 top-0 -bottom-3 w-px bg-border" />
-							{/* Horizontal branch at label center (~9px from top) */}
-							<div className="absolute -left-6 top-[0.5625rem] w-5 h-px bg-border" />
-							<FormField
-								control={form.control}
-								name="send_back_raw_request"
-								render={({ field }) => (
-									<FormItem>
-										<div className="flex items-center justify-between space-x-2">
-											<div className="space-y-0.5">
-												<FormLabel>Send Back Raw Request</FormLabel>
-												<p className="text-muted-foreground text-xs">
-												Include the raw provider request alongside the parsed request for debugging and advanced use cases
-												</p>
-											</div>
-											<FormControl>
-												<Switch
-													size="md"
-													checked={field.value}
-													disabled={!hasUpdateProviderAccess || !storeRawEnabled}
-													onCheckedChange={(checked) => {
-														field.onChange(checked);
-														form.trigger("send_back_raw_request");
-													}}
-												/>
-											</FormControl>
-										</div>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-						</div>
-
-						{/* Child 2: Send Back Raw Response — last child, trunk stops at label */}
-						<div className="relative">
-							{/* L-connector: vertical from top down to label center, then turns right */}
-							<div className="absolute -left-6 top-0 w-5 h-[0.5625rem] border-l border-b border-border rounded-bl" />
-							<FormField
-								control={form.control}
-								name="send_back_raw_response"
-								render={({ field }) => (
-									<FormItem>
-										<div className="flex items-center justify-between space-x-2">
-											<div className="space-y-0.5">
-												<FormLabel>Send Back Raw Response</FormLabel>
-												<p className="text-muted-foreground text-xs">
-												Include the raw provider response alongside the parsed response for debugging and advanced use cases
-												</p>
-											</div>
-											<FormControl>
-												<Switch
-													size="md"
-													checked={field.value}
-													disabled={!hasUpdateProviderAccess || !storeRawEnabled}
-													onCheckedChange={(checked) => {
-														field.onChange(checked);
-														form.trigger("send_back_raw_response");
-													}}
-												/>
-											</FormControl>
-										</div>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-						</div>
-
-					</div>
 				</div>
 
 				<div className="flex justify-end space-x-2 pb-6">

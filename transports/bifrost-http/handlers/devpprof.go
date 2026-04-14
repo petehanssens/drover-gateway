@@ -537,7 +537,6 @@ func categorizeGoroutine(g *GoroutineGroup) {
 		"Inject",                // Observability plugin inject
 		"insertInitialLogEntry", // Logging
 		"updateLogEntry",        // Logging
-		"updateStreamingLogEntry",
 		"retryOnNotFound",
 		"BroadcastLogUpdate",
 	}

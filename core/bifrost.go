@@ -4611,12 +4611,19 @@ func (bifrost *Bifrost) tryRequest(ctx *schemas.BifrostContext, req *schemas.Bif
 			return nil, bifrostErr
 		}
 		bifrost.releaseChannelMessage(msg)
-		// Checking if need to drop raw messages
-		// This we use for requests like containers, container files, skills etc.
-		if drop, ok := ctx.Value(schemas.BifrostContextKeyRawRequestResponseForLogging).(bool); ok && drop && resp != nil {
-			extraField := resp.GetExtraFields()
-			extraField.RawRequest = nil
-			extraField.RawResponse = nil
+		// Strip raw fields that were captured for logging but should not reach the client.
+		if resp != nil {
+			dropReq, _ := ctx.Value(schemas.BifrostContextKeyDropRawRequestFromClient).(bool)
+			dropResp, _ := ctx.Value(schemas.BifrostContextKeyDropRawResponseFromClient).(bool)
+			if dropReq || dropResp {
+				extraField := resp.GetExtraFields()
+				if dropReq {
+					extraField.RawRequest = nil
+				}
+				if dropResp {
+					extraField.RawResponse = nil
+				}
+			}
 		}
 		return resp, nil
 	case bifrostErrVal := <-msg.Err:
@@ -4624,16 +4631,26 @@ func (bifrost *Bifrost) tryRequest(ctx *schemas.BifrostContext, req *schemas.Bif
 		resp, bifrostErrPtr = pipeline.RunPostLLMHooks(msg.Context, nil, bifrostErrPtr, pluginCount)
 		drainAndAttachPluginLogs(msg.Context)
 		bifrost.releaseChannelMessage(msg)
-		// Drop raw request/response on error path too
-		if drop, ok := ctx.Value(schemas.BifrostContextKeyRawRequestResponseForLogging).(bool); ok && drop {
+		// Strip raw fields on error path too.
+		dropReq, _ := ctx.Value(schemas.BifrostContextKeyDropRawRequestFromClient).(bool)
+		dropResp, _ := ctx.Value(schemas.BifrostContextKeyDropRawResponseFromClient).(bool)
+		if dropReq || dropResp {
 			if bifrostErrPtr != nil {
-				bifrostErrPtr.ExtraFields.RawRequest = nil
-				bifrostErrPtr.ExtraFields.RawResponse = nil
+				if dropReq {
+					bifrostErrPtr.ExtraFields.RawRequest = nil
+				}
+				if dropResp {
+					bifrostErrPtr.ExtraFields.RawResponse = nil
+				}
 			}
 			if resp != nil {
 				extraField := resp.GetExtraFields()
-				extraField.RawRequest = nil
-				extraField.RawResponse = nil
+				if dropReq {
+					extraField.RawRequest = nil
+				}
+				if dropResp {
+					extraField.RawResponse = nil
+				}
 			}
 		}
 		if bifrostErrPtr != nil {
@@ -5102,26 +5119,56 @@ func (bifrost *Bifrost) requestWorker(provider schemas.Provider, config *schemas
 		req.Context.SetValue(schemas.BifrostContextKeyIsCustomProvider, !IsStandardProvider(baseProvider))
 
 		// Determine whether this provider attempt should capture raw payloads.
-		// logging-only mode (store_raw_request_response=true, send_back_raw_*=false):
-		//   sets BifrostContextKeySendBackRaw* = true so providers capture via the unified
-		//   ShouldSendBackRaw* path, and sets BifrostContextKeyRawRequestResponseForLogging
-		//   so the payload is stripped before the response reaches the client.
-		// full send-back mode (send_back_raw_request/response=true):
-		//   BifrostContextKeySendBackRaw* are set as before; stripping flag stays false.
-		// Always set both flags explicitly so stale values from a previous provider
-		// attempt (e.g. first attempt was logging-only, fallback is full send-back)
-		// cannot leak into the new attempt on a reused context.
-		existingSendBackReq, _ := req.Context.Value(schemas.BifrostContextKeySendBackRawRequest).(bool)
-		existingSendBackResp, _ := req.Context.Value(schemas.BifrostContextKeySendBackRawResponse).(bool)
-		loggingOnly := config.StoreRawRequestResponse &&
-			!config.SendBackRawRequest && !existingSendBackReq &&
-			!config.SendBackRawResponse && !existingSendBackResp
-		req.Context.SetValue(schemas.BifrostContextKeyRawRequestResponseForLogging, loggingOnly)
-		if loggingOnly {
-			// Enable capture via the standard flags so ShouldSendBackRaw* needs only one check.
-			req.Context.SetValue(schemas.BifrostContextKeySendBackRawRequest, true)
-			req.Context.SetValue(schemas.BifrostContextKeySendBackRawResponse, true)
+		//
+		// Effective values are computed by merging provider config with any per-request
+		// context overrides (BifrostContextKeySendBackRawRequest/Response and
+		// BifrostContextKeyStoreRawRequestResponse). A context value set to either true
+		// or false fully overrides the provider config for that flag.
+		//
+		// Each flag is independent:
+		//   send_back_raw_request  — include raw request bytes in the client response.
+		//   send_back_raw_response — include raw response bytes in the client response.
+		//   store_raw_request_response — persist raw bytes in log records (logging plugin only).
+		//
+		// Capture is enabled per-side whenever send-back OR store is requested for that side.
+		// Strip flags tell the response path to remove that side's bytes before the payload
+		// reaches the caller (used when store=true but send-back=false for that side).
+		//
+		// All internal signals are always written explicitly on every attempt so stale values
+		// from a previous provider attempt (e.g. different fallback provider config) cannot
+		// leak into the new attempt on a reused context. The user override keys
+		// (BifrostContextKeySendBackRaw*, BifrostContextKeyStoreRawRequestResponse) are
+		// never overwritten — they are read-only from bifrost.go's perspective.
+
+		// Step 1: compute effective value for each flag (provider config ← per-request override).
+		effectiveSendBackReq := config.SendBackRawRequest
+		if override, ok := req.Context.Value(schemas.BifrostContextKeySendBackRawRequest).(bool); ok {
+			effectiveSendBackReq = override
 		}
+		effectiveSendBackResp := config.SendBackRawResponse
+		if override, ok := req.Context.Value(schemas.BifrostContextKeySendBackRawResponse).(bool); ok {
+			effectiveSendBackResp = override
+		}
+		effectiveStore := config.StoreRawRequestResponse
+		if override, ok := req.Context.Value(schemas.BifrostContextKeyStoreRawRequestResponse).(bool); ok {
+			effectiveStore = override
+		}
+
+		// Step 2: derive per-side capture and strip flags.
+		// Capture if we need to send the data back OR store it — independent per side.
+		captureReq := effectiveSendBackReq || effectiveStore
+		captureResp := effectiveSendBackResp || effectiveStore
+		// Strip from client response if we captured for storage but not for send-back.
+		dropReq := effectiveStore && !effectiveSendBackReq
+		dropResp := effectiveStore && !effectiveSendBackResp
+
+		// Step 3: write all internal signals explicitly (never touch the user override keys).
+		req.Context.SetValue(schemas.BifrostContextKeyCaptureRawRequest, captureReq)
+		req.Context.SetValue(schemas.BifrostContextKeyCaptureRawResponse, captureResp)
+		req.Context.SetValue(schemas.BifrostContextKeyDropRawRequestFromClient, dropReq)
+		req.Context.SetValue(schemas.BifrostContextKeyDropRawResponseFromClient, dropResp)
+		// Tells the logging plugin whether to persist raw bytes in log records.
+		req.Context.SetValue(schemas.BifrostContextKeyShouldStoreRawInLogs, effectiveStore)
 
 		key := schemas.Key{}
 		var keys []schemas.Key
