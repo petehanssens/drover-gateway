@@ -44,7 +44,7 @@ interface OtelFormFragmentProps {
       service_name?: string;
       collector_url?: string;
       headers?: Record<string, string>;
-      trace_type?: "genai_extension" | "vercel" | "open_inference";
+      trace_type?: "genai_extension";
       protocol?: "http" | "grpc";
       tls_ca_cert?: string;
       insecure?: boolean;

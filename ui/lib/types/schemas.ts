@@ -717,9 +717,7 @@ export const otelProfileConfigSchema = z
 		service_name: z.string().optional(),
 		collector_url: z.string().default(""),
 		trace_type: z
-			.enum(["genai_extension", "vercel", "open_inference"], {
-				message: "Please select a trace type",
-			})
+			.enum(["genai_extension"], { message: "Please select a trace type" })
 			.default("genai_extension"),
 		headers: z.record(z.string(), z.string()).optional(),
 		protocol: z

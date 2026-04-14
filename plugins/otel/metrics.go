@@ -356,39 +356,22 @@ func (m *MetricsExporter) RecordHTTPResponseSize(ctx context.Context, sizeBytes 
 	m.httpResponseSizeBytes.Record(ctx, sizeBytes, metric.WithAttributes(attrs...))
 }
 
-// BifrostAttrParams holds parameters for building Bifrost metric attributes
-type BifrostAttrParams struct {
-	Provider        string
-	Model           string
-	Method          string
-	VirtualKeyID    string
-	VirtualKeyName  string
-	SelectedKeyID   string
-	SelectedKeyName string
-	NumberOfRetries int
-	FallbackIndex   int
-	TeamID          string
-	TeamName        string
-	CustomerID      string
-	CustomerName    string
-}
-
 // BuildBifrostAttributes builds common Bifrost metric attributes
-func BuildBifrostAttributes(p BifrostAttrParams) []attribute.KeyValue {
+func BuildBifrostAttributes(provider, model, method, virtualKeyID, virtualKeyName, selectedKeyID, selectedKeyName string, numberOfRetries, fallbackIndex int, teamID, teamName, customerID, customerName string) []attribute.KeyValue {
 	return []attribute.KeyValue{
-		attribute.String("provider", p.Provider),
-		attribute.String("model", p.Model),
-		attribute.String("method", p.Method),
-		attribute.String("virtual_key_id", p.VirtualKeyID),
-		attribute.String("virtual_key_name", p.VirtualKeyName),
-		attribute.String("selected_key_id", p.SelectedKeyID),
-		attribute.String("selected_key_name", p.SelectedKeyName),
-		attribute.Int("number_of_retries", p.NumberOfRetries),
-		attribute.Int("fallback_index", p.FallbackIndex),
-		attribute.String("team_id", p.TeamID),
-		attribute.String("team_name", p.TeamName),
-		attribute.String("customer_id", p.CustomerID),
-		attribute.String("customer_name", p.CustomerName),
+		attribute.String("provider", provider),
+		attribute.String("model", model),
+		attribute.String("method", method),
+		attribute.String("virtual_key_id", virtualKeyID),
+		attribute.String("virtual_key_name", virtualKeyName),
+		attribute.String("selected_key_id", selectedKeyID),
+		attribute.String("selected_key_name", selectedKeyName),
+		attribute.Int("number_of_retries", numberOfRetries),
+		attribute.Int("fallback_index", fallbackIndex),
+		attribute.String("team_id", teamID),
+		attribute.String("team_name", teamName),
+		attribute.String("customer_id", customerID),
+		attribute.String("customer_name", customerName),
 	}
 }
 
@@ -442,84 +425,77 @@ func getFloat64Attr(attrs map[string]any, key string) float64 {
 	return 0
 }
 
+// buildSpanAttrs extracts metric dimension attrs from a single attempt span.
+func buildSpanAttrs(span *schemas.Span) []attribute.KeyValue {
+	attrs := span.Attributes
+	method := getStringAttr(attrs, "request.type")
+	if method == "" {
+		method = span.Name
+	}
+	return BuildBifrostAttributes(
+		getStringAttr(attrs, schemas.AttrProviderName),
+		getStringAttr(attrs, schemas.AttrRequestModel),
+		method,
+		getStringAttr(attrs, schemas.AttrVirtualKeyID),
+		getStringAttr(attrs, schemas.AttrVirtualKeyName),
+		getStringAttr(attrs, schemas.AttrSelectedKeyID),
+		getStringAttr(attrs, schemas.AttrSelectedKeyName),
+		getIntAttr(attrs, schemas.AttrNumberOfRetries),
+		getIntAttr(attrs, schemas.AttrFallbackIndex),
+		getStringAttr(attrs, schemas.AttrTeamID),
+		getStringAttr(attrs, schemas.AttrTeamName),
+		getStringAttr(attrs, schemas.AttrCustomerID),
+		getStringAttr(attrs, schemas.AttrCustomerName),
+	)
+}
+
 // recordMetricsFromTrace extracts metrics data from a completed trace and records them
 // via the OTEL metrics exporter. This is called from Inject after trace emission.
+//
+// Per-attempt metrics (upstream_requests, errors, success, latency) are recorded once
+// per llm.call/retry span so fallback attempts and failed retries are counted with
+// their own provider/model/fallback_index labels. Per-trace metrics (tokens, cost,
+// TTFT) are recorded once, keyed off the final (latest) attempt span.
 func (m *MetricsExporter) recordMetricsFromTrace(ctx context.Context, trace *schemas.Trace) {
 	if trace == nil || m == nil {
 		return
 	}
 
-	// Prefer the last attempt span (LLM call or retry) so metrics reflect the final outcome.
-	var llmSpan *schemas.Span
+	var finalSpan *schemas.Span
 	for _, span := range trace.Spans {
 		if span.Kind != schemas.SpanKindLLMCall && span.Kind != schemas.SpanKindRetry {
 			continue
 		}
-		if llmSpan == nil || span.EndTime.After(llmSpan.EndTime) {
-			llmSpan = span
+
+		spanAttrs := buildSpanAttrs(span)
+
+		m.RecordUpstreamRequest(ctx, spanAttrs...)
+
+		if !span.StartTime.IsZero() && !span.EndTime.IsZero() {
+			latencySeconds := span.EndTime.Sub(span.StartTime).Seconds()
+			m.RecordUpstreamLatency(ctx, latencySeconds, spanAttrs...)
+		}
+
+		if span.Status == schemas.SpanStatusError {
+			m.RecordErrorRequest(ctx, spanAttrs...)
+		} else {
+			m.RecordSuccessRequest(ctx, spanAttrs...)
+		}
+
+		if finalSpan == nil || span.EndTime.After(finalSpan.EndTime) {
+			finalSpan = span
 		}
 	}
-	if llmSpan == nil {
-		llmSpan = trace.RootSpan
-	}
 
-	if llmSpan == nil {
+	if finalSpan == nil {
+		finalSpan = trace.RootSpan
+	}
+	if finalSpan == nil {
 		return
 	}
 
-	attrs := llmSpan.Attributes
-
-	// Extract all metric dimensions from span attributes
-	provider := getStringAttr(attrs, schemas.AttrProviderName)
-	model := getStringAttr(attrs, schemas.AttrRequestModel)
-	// Prefer request.type attribute to keep the method stable across retries
-	method := getStringAttr(attrs, "request.type")
-	if method == "" {
-		method = llmSpan.Name
-	}
-	virtualKeyID := getStringAttr(attrs, schemas.AttrVirtualKeyID)
-	virtualKeyName := getStringAttr(attrs, schemas.AttrVirtualKeyName)
-	selectedKeyID := getStringAttr(attrs, schemas.AttrSelectedKeyID)
-	selectedKeyName := getStringAttr(attrs, schemas.AttrSelectedKeyName)
-	numberOfRetries := getIntAttr(attrs, schemas.AttrNumberOfRetries)
-	fallbackIndex := getIntAttr(attrs, schemas.AttrFallbackIndex)
-	teamID := getStringAttr(attrs, schemas.AttrTeamID)
-	teamName := getStringAttr(attrs, schemas.AttrTeamName)
-	customerID := getStringAttr(attrs, schemas.AttrCustomerID)
-	customerName := getStringAttr(attrs, schemas.AttrCustomerName)
-
-	// Build common attributes for all metrics
-	otelAttrs := BuildBifrostAttributes(BifrostAttrParams{
-		Provider:        provider,
-		Model:           model,
-		Method:          method,
-		VirtualKeyID:    virtualKeyID,
-		VirtualKeyName:  virtualKeyName,
-		SelectedKeyID:   selectedKeyID,
-		SelectedKeyName: selectedKeyName,
-		NumberOfRetries: numberOfRetries,
-		FallbackIndex:   fallbackIndex,
-		TeamID:          teamID,
-		TeamName:        teamName,
-		CustomerID:      customerID,
-		CustomerName:    customerName,
-	})
-
-	// Record upstream request count
-	m.RecordUpstreamRequest(ctx, otelAttrs...)
-
-	// Record latency (from span duration)
-	if !llmSpan.StartTime.IsZero() && !llmSpan.EndTime.IsZero() {
-		latencySeconds := llmSpan.EndTime.Sub(llmSpan.StartTime).Seconds()
-		m.RecordUpstreamLatency(ctx, latencySeconds, otelAttrs...)
-	}
-
-	// Record success or error based on span status
-	if llmSpan.Status == schemas.SpanStatusError {
-		m.RecordErrorRequest(ctx, otelAttrs...)
-	} else {
-		m.RecordSuccessRequest(ctx, otelAttrs...)
-	}
+	attrs := finalSpan.Attributes
+	otelAttrs := buildSpanAttrs(finalSpan)
 
 	// Record token usage - try both naming conventions
 	inputTokens := getIntAttr(attrs, schemas.AttrPromptTokens)
