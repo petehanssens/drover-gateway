@@ -20,17 +20,21 @@ const COLLAPSE_STORAGE_KEY = "mcp-filter-sidebar-collapsed";
 interface MCPFilterSidebarProps {
 	filters: MCPToolLogFilters;
 	onFiltersChange: (filters: MCPToolLogFilters) => void;
+	/** When true, hide the collapse rail and always render expanded. Used inside the mobile Sheet. */
+	disableCollapse?: boolean;
+	className?: string;
 }
 
-export function MCPFilterSidebar({ filters, onFiltersChange }: MCPFilterSidebarProps) {
+export function MCPFilterSidebar({ filters, onFiltersChange, disableCollapse = false, className }: MCPFilterSidebarProps) {
 	const [collapsed, setCollapsed] = useState(false);
 
 	// Load persisted collapsed state on mount
 	useEffect(() => {
+		if (disableCollapse) return;
 		if (typeof window === "undefined") return;
 		const stored = window.localStorage.getItem(COLLAPSE_STORAGE_KEY);
 		if (stored === "true") setCollapsed(true);
-	}, []);
+	}, [disableCollapse]);
 
 	const toggleCollapsed = useCallback(() => {
 		setCollapsed((prev) => {
@@ -60,7 +64,7 @@ export function MCPFilterSidebar({ filters, onFiltersChange }: MCPFilterSidebarP
 	}, [filters.start_time, filters.end_time, onFiltersChange]);
 
 	// Collapsed: thin rail with vertical "Filters" label — whole rail is clickable to expand
-	if (collapsed) {
+	if (collapsed && !disableCollapse) {
 		return (
 			<button
 				type="button"
@@ -81,7 +85,7 @@ export function MCPFilterSidebar({ filters, onFiltersChange }: MCPFilterSidebarP
 	}
 
 	return (
-		<div className="bg-card flex h-full w-64 shrink-0 flex-col rounded-r-md">
+		<div className={cn("bg-card flex h-full w-64 shrink-0 flex-col rounded-r-md", className)}>
 			{/* Header */}
 			<div className="flex h-11 items-center justify-between border-b pr-2 pl-5">
 				<span className="text-sm font-semibold">Filters</span>
@@ -92,9 +96,11 @@ export function MCPFilterSidebar({ filters, onFiltersChange }: MCPFilterSidebarP
 							Reset
 						</Button>
 					)}
-					<Button variant="ghost" size="icon" className="size-7" onClick={toggleCollapsed} title="Hide filters" aria-label="Hide filters">
-						<PanelLeftClose className="size-4" />
-					</Button>
+					{!disableCollapse && (
+						<Button variant="ghost" size="icon" className="size-7" onClick={toggleCollapsed} title="Hide filters" aria-label="Hide filters">
+							<PanelLeftClose className="size-4" />
+						</Button>
+					)}
 				</div>
 			</div>
 

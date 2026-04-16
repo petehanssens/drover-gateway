@@ -10,7 +10,6 @@ import FullPageLoader from "@/components/fullPageLoader";
 import { useColumnConfig } from "@/components/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import {
@@ -835,7 +834,13 @@ export default function LogsPage() {
 			},
 			{
 				title: "User Success Rate",
-				value: fetchingStats ? <Skeleton className="h-8 w-16" /> : stats ? `${(stats.user_facing_success_rate ?? 0).toFixed(2)}%` : "-",
+				value: (
+					<NumberFlow
+						value={stats?.user_facing_success_rate ?? 0}
+						format={{ minimumFractionDigits: 2, maximumFractionDigits: 2 }}
+						suffix="%"
+					/>
+				),
 				icon: <CheckCircle className="size-4" />,
 				description: "Success rate as perceived by the end user. It includes fallback chains as one request.",
 			},
@@ -868,10 +873,7 @@ export default function LogsPage() {
 		return Object.keys(filterData.metadata_keys).sort();
 	}, [filterData?.metadata_keys]);
 
-	const columns = useMemo(
-		() => createColumns(handleDelete, hasDeleteAccess, metadataKeys),
-		[handleDelete, hasDeleteAccess, metadataKeys],
-	);
+	const columns = useMemo(() => createColumns(handleDelete, hasDeleteAccess, metadataKeys), [handleDelete, hasDeleteAccess, metadataKeys]);
 
 	const columnIds = useMemo(
 		() => columns.map((col) => ("id" in col && col.id ? col.id : "accessorKey" in col ? String(col.accessorKey) : "")).filter(Boolean),
@@ -959,18 +961,20 @@ export default function LogsPage() {
 	);
 
 	return (
-		<div className="dark:bg-card no-padding-parent no-border-parent h-[calc(100vh_-_16px)]">
+		<div className="dark:bg-card no-padding-parent no-border-parent h-[calc(100dvh_-_16px)]">
 			{initialLoading ? (
 				<FullPageLoader />
 			) : showEmptyState ? (
 				<EmptyState isSocketConnected={isSocketConnected} error={error} />
 			) : (
-				<div className="bg-background flex h-full w-full grow gap-3">
-					{/* Sidebar Filters */}
-					<LogsFilterSidebar filters={filters} onFiltersChange={setFilters} />
+				<div className="bg-background flex h-full w-full grow gap-2 md:gap-3">
+					{/* Sidebar Filters — hidden on small screens to free up width for the table */}
+					<div className="hidden h-full md:flex">
+						<LogsFilterSidebar filters={filters} onFiltersChange={setFilters} />
+					</div>
 
 					{/* Main Content */}
-					<div className="bg-card flex min-w-0 flex-1 flex-col gap-2 overflow-hidden rounded-l-md p-4 pb-2">
+					<div className="bg-card flex min-w-0 flex-1 flex-col gap-2 overflow-hidden rounded-md p-2 pb-2 sm:rounded-l-md sm:p-4 sm:pb-2">
 						<div className="shrink-0">
 							<LogsHeaderView
 								filters={filters}
@@ -985,15 +989,15 @@ export default function LogsPage() {
 								onResetColumns={resetColumns}
 							/>
 						</div>
-						<div className="grid shrink-0 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+						<div className="grid shrink-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-6">
 							{statCards.map((card) => (
-								<Card key={card.title} className="py-4 shadow-none">
+								<Card key={card.title} className="py-3 shadow-none sm:py-4">
 									<CardContent
-										className={`flex items-center justify-between px-4 transition-opacity duration-200 ${fetchingStats ? "opacity-50" : "opacity-100"}`}
+										className={`flex items-center justify-between px-3 transition-opacity duration-200 sm:px-4 ${fetchingStats ? "opacity-50" : "opacity-100"}`}
 									>
 										<div className="w-full min-w-0">
 											<div className="text-muted-foreground flex items-center gap-1 text-xs">
-												{card.title}
+												<span className="truncate">{card.title}</span>
 												{"description" in card && card.description && (
 													<Tooltip>
 														<TooltipTrigger asChild>
@@ -1010,7 +1014,7 @@ export default function LogsPage() {
 													</Tooltip>
 												)}
 											</div>
-											<div className="truncate font-mono text-xl font-medium sm:text-2xl">{card.value}</div>
+											<div className="truncate font-mono text-lg font-medium sm:text-xl lg:text-2xl">{card.value}</div>
 										</div>
 									</CardContent>
 								</Card>

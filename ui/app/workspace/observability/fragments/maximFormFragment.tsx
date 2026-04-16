@@ -110,7 +110,7 @@ export function MaximFormFragment({ initialConfig, onSave, onDelete, isDeleting 
 				</div>
 
 				{/* Form Actions */}
-				<div className="flex w-full flex-row items-center">
+				<div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:gap-0">
 					<FormField
 						control={form.control}
 						name="enabled"
@@ -128,7 +128,7 @@ export function MaximFormFragment({ initialConfig, onSave, onDelete, isDeleting 
 							</FormItem>
 						)}
 					/>
-					<div className="ml-auto flex justify-end space-x-2 py-2">
+					<div className="flex w-full flex-col gap-2 py-2 sm:ml-auto sm:w-auto sm:flex-row sm:justify-end sm:gap-2">
 						{onDelete && (
 							<Button
 								type="button"
@@ -137,6 +137,7 @@ export function MaximFormFragment({ initialConfig, onSave, onDelete, isDeleting 
 								disabled={isDeleting}
 								title="Delete connector"
 								aria-label="Delete connector"
+								className="w-full sm:w-auto"
 							>
 								<Trash2 className="size-4" />
 							</Button>
@@ -144,6 +145,7 @@ export function MaximFormFragment({ initialConfig, onSave, onDelete, isDeleting 
 						<Button
 							type="button"
 							variant="outline"
+							className="w-full sm:w-auto"
 							onClick={() => {
 								form.reset({
 									enabled: initialConfig?.enabled ?? true,
@@ -162,6 +164,7 @@ export function MaximFormFragment({ initialConfig, onSave, onDelete, isDeleting 
 								<TooltipTrigger asChild>
 									<Button
 										type="submit"
+										className="w-full sm:w-auto"
 										disabled={!hasMaximAccess || !form.formState.isDirty || !form.formState.isValid}
 										isLoading={isSaving}
 									>
