@@ -79,7 +79,7 @@ export default function LoggingView() {
 			<div className="space-y-4">
 				{/* Enable Logs */}
 				<div>
-					<div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
+					<div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:space-x-2">
 						<div className="space-y-0.5">
 							<label htmlFor="enable-logging" className="text-sm font-medium">
 								Enable Logs
@@ -109,7 +109,7 @@ export default function LoggingView() {
 				{/* Disable Content Logging - Only show when logging is enabled */}
 				{localConfig.enable_logging && bifrostConfig?.is_logs_connected && (
 					<div>
-						<div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
+						<div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:space-x-2">
 							<div className="space-y-0.5">
 								<label htmlFor="disable-content-logging" className="text-sm font-medium">
 									Disable Content Logging
@@ -132,7 +132,7 @@ export default function LoggingView() {
 
 				{/* Log Retention Days */}
 				{localConfig.enable_logging && bifrostConfig?.is_logs_connected && (
-					<div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
+					<div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:space-x-2">
 						<div className="space-y-0.5">
 							<Label htmlFor="log-retention-days" className="text-sm font-medium">
 								Log Retention Days
@@ -150,12 +150,12 @@ export default function LoggingView() {
 								const value = parseInt(e.target.value) || 1;
 								handleConfigChange("log_retention_days", Math.max(1, value));
 							}}
-							className="w-24"
+							className="w-full sm:w-24"
 						/>
 					</div>
 				)}
 
-				<div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
+				<div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:space-x-2">
 					<div className="space-y-0.5">
 						<label htmlFor="hide-deleted-virtual-keys-in-filters" className="text-sm font-medium">
 							Do Not Show Deleted VirtualKeys In Filters
@@ -197,7 +197,7 @@ export default function LoggingView() {
 			</div>
 
 			<div className="flex justify-end pt-2">
-				<Button onClick={handleSave} disabled={!hasChanges || isLoading || !hasSettingsUpdateAccess}>
+				<Button onClick={handleSave} disabled={!hasChanges || isLoading || !hasSettingsUpdateAccess} className="w-full sm:w-auto">
 					{isLoading ? "Saving..." : "Save Changes"}
 				</Button>
 			</div>

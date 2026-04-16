@@ -121,8 +121,43 @@ export default function ObservabilityView() {
 	}
 
 	return (
-		<div className="flex h-full flex-row gap-4">
-			<div className="flex flex-col">
+		<div className="flex h-full flex-col gap-3 md:flex-row md:gap-4">
+			{/* Mobile: horizontal scroll of provider pills */}
+			<div className="md:hidden">
+				<div className="text-muted-foreground mb-2 text-xs font-medium">Providers</div>
+				<div className="-mx-2 flex gap-2 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+					{supportedPlatforms.map((tab) => (
+						<button
+							type="button"
+							key={tab.id}
+							disabled={!!tab.disabled}
+							data-testid={`observability-provider-btn-mobile-${tab.id}`}
+							aria-disabled={tab.disabled ? true : undefined}
+							aria-current={selectedPluginId === tab.id ? "page" : undefined}
+							className={cn(
+								"flex h-9 shrink-0 items-center gap-2 rounded-md border px-3 text-sm whitespace-nowrap",
+								tab.disabled && "opacity-50",
+								selectedPluginId === tab.id ? "bg-secondary border-border" : "border-transparent bg-zinc-100/20 dark:bg-zinc-800/30",
+							)}
+							onClick={() => {
+								if (tab.disabled) return;
+								setSelectedPluginId(tab.id ?? supportedPlatforms[0].id);
+							}}
+						>
+							<div className="flex w-[21px] shrink-0 items-center justify-center">{tab.icon}</div>
+							<span>{tab.name}</span>
+							{tab.disabled && (
+								<Badge variant="secondary" className="text-muted-foreground text-[10px] font-medium">
+									SOON
+								</Badge>
+							)}
+						</button>
+					))}
+				</div>
+			</div>
+
+			{/* Desktop: left sidebar of providers */}
+			<div className="hidden md:flex md:flex-col">
 				<div className="flex w-[270px] flex-col gap-2 pb-10">
 					<div className="rounded-md bg-zinc-100/10 p-4 dark:bg-zinc-800/20">
 						<div className="flex flex-col gap-1">
@@ -168,7 +203,8 @@ export default function ObservabilityView() {
 					</div>
 				</div>
 			</div>
-			<div className="w-full pt-4">
+
+			<div className="w-full min-w-0 md:pt-4">
 				{selectedPluginId === "prometheus" && <PrometheusView />}
 				{selectedPluginId === "otel" && <OtelView />}
 				{selectedPluginId === "maxim" && <MaximView />}

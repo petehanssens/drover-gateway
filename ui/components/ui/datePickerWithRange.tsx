@@ -1,3 +1,4 @@
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -43,6 +44,7 @@ interface DateTimePickerWithRangeProps extends DatePickerWithRangeProps {
 
 export function DateTimePickerWithRange(props: DateTimePickerWithRangeProps) {
 	const { className, buttonClassName, triggerLabel, onTrigger, dateTime } = props;
+	const isMobile = useIsMobile();
 	const [date, setDate] = React.useState<DateRange | undefined>(dateTime);
 	const [timeValue, setTimeValue] = React.useState<TimeRange>({
 		from: dateTime?.from ? { hour: dateTime.from.getHours(), minute: dateTime.from.getMinutes() } : { hour: 0, minute: 0 },
@@ -144,9 +146,35 @@ export function DateTimePickerWithRange(props: DateTimePickerWithRangeProps) {
 						)}
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent className="w-auto p-0" align={props.popupAlignment ? props.popupAlignment : "start"}>
-					<div className="flex flex-row gap-2">
-						<div>
+				<PopoverContent
+					className="max-h-[85dvh] w-auto max-w-[calc(100vw_-_1rem)] overflow-y-auto p-0 sm:max-w-none"
+					align={props.popupAlignment ? props.popupAlignment : "start"}
+				>
+					<div className="flex flex-col gap-2 sm:flex-row">
+						{props.preDefinedPeriods && isMobile && (
+							<div className="flex flex-row flex-wrap gap-1 border-b p-2">
+								{props.preDefinedPeriods.map((period) => (
+									<Button
+										className={cn(
+											"h-7 px-2 text-xs",
+											predefinedPeriod === period.value && "bg-primary text-primary-foreground",
+										)}
+										variant="ghost"
+										size="sm"
+										key={period.value}
+										onClick={(e) => {
+											e.preventDefault();
+											e.stopPropagation();
+											setPredefinedPeriod(period.value);
+											props.onPredefinedPeriodChange && props.onPredefinedPeriodChange(period.value);
+										}}
+									>
+										{period.label}
+									</Button>
+								))}
+							</div>
+						)}
+						<div className="min-w-0">
 							<Calendar
 								autoFocus
 								mode="range"
@@ -175,9 +203,9 @@ export function DateTimePickerWithRange(props: DateTimePickerWithRangeProps) {
 											});
 									}
 								}}
-								numberOfMonths={2}
+								numberOfMonths={isMobile ? 1 : 2}
 							/>
-							<div className="-mt-1 flex flex-row items-center px-2 pb-1">
+							<div className="-mt-1 flex flex-row flex-wrap items-center px-2 pb-1">
 								<div className="m-1 flex flex-1 flex-col gap-1">
 									<Label className="ml-0.5">From Time</Label>
 									<TimePicker
@@ -225,7 +253,7 @@ export function DateTimePickerWithRange(props: DateTimePickerWithRangeProps) {
 								</div>
 							</div>
 						</div>
-						{props.preDefinedPeriods && (
+						{props.preDefinedPeriods && !isMobile && (
 							<div className="flex w-[150px] flex-col gap-1 border-l py-2 pr-3 pl-2">
 								{props.preDefinedPeriods.map((period) => (
 									<Button

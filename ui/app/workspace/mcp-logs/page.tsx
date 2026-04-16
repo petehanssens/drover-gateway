@@ -549,13 +549,15 @@ export default function MCPLogsPage() {
 					}
 				/>
 			) : (
-				<div className="no-padding-parent no-border-parent bg-background flex h-[calc(100vh_-_16px)] w-full gap-3">
-					{/* Sidebar Filters */}
-					<MCPFilterSidebar filters={filters} onFiltersChange={setFilters} />
+				<div className="no-padding-parent no-border-parent bg-background flex h-[calc(100dvh_-_16px)] w-full gap-2 md:gap-3">
+					{/* Sidebar Filters — hidden on small screens; mobile access is via the Sheet trigger in the header */}
+					<div className="hidden h-full md:flex">
+						<MCPFilterSidebar filters={filters} onFiltersChange={setFilters} />
+					</div>
 
 					{/* Main Content */}
-					<div className="bg-card flex min-w-0 flex-1 flex-col gap-2 overflow-hidden rounded-l-md">
-						<div className="p-4 pb-0">
+					<div className="bg-card flex min-w-0 flex-1 flex-col gap-2 overflow-hidden rounded-md sm:rounded-l-md">
+						<div className="p-2 pb-0 sm:p-4 sm:pb-0">
 							<McpHeaderView
 								filters={filters}
 								onFiltersChange={setFilters}
@@ -568,16 +570,16 @@ export default function MCPLogsPage() {
 							/>
 						</div>
 						{/* Quick Stats */}
-						<div className="px-4">
-							<div className="grid shrink-0 grid-cols-1 gap-4 md:grid-cols-4">
+						<div className="px-2 sm:px-4">
+							<div className="grid shrink-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 md:gap-4">
 								{statCards.map((card) => (
-									<Card key={card.title} className="py-4 shadow-none">
+									<Card key={card.title} className="py-3 shadow-none sm:py-4">
 										<CardContent
-											className={`flex items-center justify-between px-4 transition-opacity duration-200 ${fetchingStats ? "opacity-50" : "opacity-100"}`}
+											className={`flex items-center justify-between px-3 transition-opacity duration-200 sm:px-4 ${fetchingStats ? "opacity-50" : "opacity-100"}`}
 										>
 											<div className="w-full min-w-0">
 												<div className="text-muted-foreground text-xs">{card.title}</div>
-												<div className="truncate font-mono text-xl font-medium sm:text-2xl">{card.value}</div>
+												<div className="truncate font-mono text-lg font-medium sm:text-xl lg:text-2xl">{card.value}</div>
 											</div>
 										</CardContent>
 									</Card>

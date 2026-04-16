@@ -160,7 +160,7 @@ export function PrometheusFormFragment({
 							)}
 						/>
 
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<FormField
 								control={form.control}
 								name="prometheus_config.job_name"
@@ -254,7 +254,7 @@ export function PrometheusFormFragment({
 											<Trash className="h-4 w-4" />
 										</Button>
 									</div>
-									<div className="border-muted grid grid-cols-2 gap-4">
+									<div className="border-muted grid grid-cols-1 gap-4 sm:grid-cols-2">
 										<FormField
 											control={form.control}
 											name="prometheus_config.basic_auth_username"
@@ -308,7 +308,7 @@ export function PrometheusFormFragment({
 				</div>
 
 				{/* Form Actions */}
-				<div className="flex w-full flex-row items-center">
+				<div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:gap-0">
 					<FormField
 						control={form.control}
 						name="enabled"
@@ -326,7 +326,7 @@ export function PrometheusFormFragment({
 							</FormItem>
 						)}
 					/>
-					<div className="ml-auto flex justify-end space-x-2 py-2">
+					<div className="flex w-full flex-col gap-2 py-2 sm:ml-auto sm:w-auto sm:flex-row sm:justify-end sm:gap-2">
 						{onDelete && (
 							<Button
 								type="button"
@@ -336,6 +336,7 @@ export function PrometheusFormFragment({
 								data-testid="prometheus-connector-delete-btn"
 								title="Delete connector"
 								aria-label="Delete connector"
+								className="w-full sm:w-auto"
 							>
 								<Trash2 className="size-4" />
 							</Button>
@@ -343,6 +344,7 @@ export function PrometheusFormFragment({
 						<Button
 							type="button"
 							variant="outline"
+							className="w-full sm:w-auto"
 							onClick={() => {
 								form.reset({
 									enabled: initialConfig?.enabled ?? true,
@@ -366,6 +368,7 @@ export function PrometheusFormFragment({
 								<TooltipTrigger asChild>
 									<Button
 										type="submit"
+										className="w-full sm:w-auto"
 										disabled={!hasPrometheusAccess || !form.formState.isDirty || !form.formState.isValid}
 										isLoading={isSaving}
 									>

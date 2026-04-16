@@ -1087,7 +1087,7 @@ export default function AppSidebar() {
 
 	return (
 		<Sidebar collapsible="icon" className="overflow-y-clip border-none bg-transparent">
-			<SidebarHeader className="mt-1 ml-2 flex justify-between px-0 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:h-auto">
+			<SidebarHeader className="mt-1 ml-2 flex justify-between px-0 max-md:hidden group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:h-auto">
 				{/* Expanded state: horizontal layout */}
 				<div className="flex h-10 w-full items-center justify-between px-1.5 group-data-[collapsible=icon]:hidden">
 					<Link to="/workspace/logs" className="group flex items-center gap-2 pl-2">
@@ -1109,7 +1109,7 @@ export default function AppSidebar() {
 					<img className="h-[22px] w-auto" src={iconSrc} alt="Bifrost" width={22} height={22} />
 				</div>
 			</SidebarHeader>
-			<div className="mx-2 pb-1 group-data-[collapsible=icon]:hidden">
+			<div className="mx-2 pb-1 max-md:hidden group-data-[collapsible=icon]:hidden">
 				<div className="relative">
 					<Search className="text-muted-foreground absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2" />
 					<input

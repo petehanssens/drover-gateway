@@ -1,9 +1,11 @@
+import { MCPFilterSidebar } from "@/components/filters/mcpFilterSidebar";
 import { ColumnConfigDropdown, type ColumnConfigEntry } from "@/components/table";
 import { Button } from "@/components/ui/button";
 import { DateTimePickerWithRange } from "@/components/ui/datePickerWithRange";
 import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { MCPToolLogFilters } from "@/lib/types/logs";
-import { Pause, Play, Search } from "lucide-react";
+import { Filter, Pause, Play, Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const LOG_TIME_PERIODS = [
@@ -107,22 +109,44 @@ export function McpHeaderView({
 	);
 
 	return (
-		<div className="flex grow items-center justify-between space-x-2">
-			<Button variant={"outline"} size="sm" className="h-7.5" onClick={() => onLiveToggle(!liveEnabled)}>
-				{liveEnabled ? (
-					<>
-						<Pause className="h-4 w-4" />
-						Live updates
-					</>
-				) : (
-					<>
-						<Play className="h-4 w-4" />
-						Live updates
-					</>
-				)}
-			</Button>
-			<div className="border-input flex h-7.5 flex-1 items-center gap-2 rounded-sm border">
-				<Search className="mr-0.5 ml-2 size-4" />
+		<div className="flex grow flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+			{/* Mobile row 1: filter + live on the left, column-config right-aligned.
+			    On sm+ this wrapper becomes display:contents so its children flow inline with the rest. */}
+			<div className="flex items-center gap-2 sm:contents">
+				{/* Filter sheet trigger — mobile only */}
+				<Sheet>
+					<SheetTrigger asChild>
+						<Button variant="outline" size="sm" className="h-7.5 shrink-0 md:hidden" aria-label="Open filters">
+							<Filter className="size-4" />
+						</Button>
+					</SheetTrigger>
+					<SheetContent side="left" className="w-[85vw] max-w-sm border-r p-0">
+						<SheetTitle className="sr-only">Filters</SheetTitle>
+						<SheetDescription className="sr-only">Filter MCP logs by tool, server, status, and virtual key.</SheetDescription>
+						<MCPFilterSidebar filters={filters} onFiltersChange={onFiltersChange} disableCollapse className="w-full rounded-none" />
+					</SheetContent>
+				</Sheet>
+
+				<Button variant={"outline"} size="sm" className="h-7.5 shrink-0 sm:order-1" onClick={() => onLiveToggle(!liveEnabled)}>
+					{liveEnabled ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+					<span className="hidden sm:inline">Live updates</span>
+				</Button>
+
+				<div className="ml-auto flex items-center gap-2 sm:contents">
+					<div className="sm:order-4">
+						<ColumnConfigDropdown
+							entries={columnEntries}
+							labels={columnLabels}
+							onToggleVisibility={onToggleColumnVisibility}
+							onReset={onResetColumns}
+						/>
+					</div>
+				</div>
+			</div>
+
+			{/* Search — mobile row 2 (full width); on desktop, slides between Live and Date as flex-1 */}
+			<div className="border-input flex h-7.5 w-full items-center gap-2 rounded-sm border sm:w-auto sm:flex-1 sm:order-2">
+				<Search className="mr-0.5 ml-2 size-4 shrink-0" />
 				<Input
 					type="text"
 					className="!h-7 rounded-tl-none rounded-tr-sm rounded-br-sm rounded-bl-none border-none bg-slate-50 shadow-none outline-none focus-visible:ring-0 dark:bg-zinc-900"
@@ -131,7 +155,11 @@ export function McpHeaderView({
 					onChange={(e) => handleSearchChange(e.target.value)}
 				/>
 			</div>
+
+			{/* Date picker — mobile row 3 (full width); auto width on desktop */}
 			<DateTimePickerWithRange
+				className="w-full sm:w-auto sm:order-3"
+				buttonClassName="w-full justify-start sm:w-auto"
 				dateTime={{ from: startTime, to: endTime }}
 				onDateTimeUpdate={(p) => {
 					setStartTime(p.from);
@@ -155,7 +183,6 @@ export function McpHeaderView({
 					});
 				}}
 			/>
-			<ColumnConfigDropdown entries={columnEntries} labels={columnLabels} onToggleVisibility={onToggleColumnVisibility} onReset={onResetColumns} />
 		</div>
 	);
 }
