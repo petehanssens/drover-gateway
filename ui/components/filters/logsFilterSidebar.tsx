@@ -20,17 +20,21 @@ const COLLAPSE_STORAGE_KEY = "logs-filter-sidebar-collapsed";
 interface LogsSidebarProps {
 	filters: LogFilters;
 	onFiltersChange: (filters: LogFilters) => void;
+	/** When true, hide the collapse rail and always render expanded. Used inside the mobile Sheet. */
+	disableCollapse?: boolean;
+	className?: string;
 }
 
-export function LogsFilterSidebar({ filters, onFiltersChange }: LogsSidebarProps) {
+export function LogsFilterSidebar({ filters, onFiltersChange, disableCollapse = false, className }: LogsSidebarProps) {
 	const [collapsed, setCollapsed] = useState(false);
 
 	// Load persisted collapsed state on mount
 	useEffect(() => {
+		if (disableCollapse) return;
 		if (typeof window === "undefined") return;
 		const stored = window.localStorage.getItem(COLLAPSE_STORAGE_KEY);
 		if (stored === "true") setCollapsed(true);
-	}, []);
+	}, [disableCollapse]);
 
 	const toggleCollapsed = useCallback(() => {
 		setCollapsed((prev) => {
@@ -63,7 +67,7 @@ export function LogsFilterSidebar({ filters, onFiltersChange }: LogsSidebarProps
 	}, [filters.start_time, filters.end_time, onFiltersChange]);
 
 	// Collapsed: thin rail with vertical "Filters" label — whole rail is clickable to expand
-	if (collapsed) {
+	if (collapsed && !disableCollapse) {
 		return (
 			<button
 				type="button"
@@ -84,7 +88,7 @@ export function LogsFilterSidebar({ filters, onFiltersChange }: LogsSidebarProps
 	}
 
 	return (
-		<div className="bg-card flex h-full w-64 shrink-0 flex-col rounded-r-md">
+		<div className={cn("bg-card flex h-full w-64 shrink-0 flex-col rounded-r-md", className)}>
 			{/* Header */}
 			<div className="flex h-11 items-center justify-between border-b pr-2 pl-5">
 				<span className="text-sm font-semibold">Filters</span>
@@ -95,9 +99,11 @@ export function LogsFilterSidebar({ filters, onFiltersChange }: LogsSidebarProps
 							Reset
 						</Button>
 					)}
-					<Button variant="ghost" size="icon" className="size-7" onClick={toggleCollapsed} title="Hide filters" aria-label="Hide filters">
-						<PanelLeftClose className="size-4" />
-					</Button>
+					{!disableCollapse && (
+						<Button variant="ghost" size="icon" className="size-7" onClick={toggleCollapsed} title="Hide filters" aria-label="Hide filters">
+							<PanelLeftClose className="size-4" />
+						</Button>
+					)}
 				</div>
 			</div>
 
