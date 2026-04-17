@@ -19,9 +19,6 @@ import { useGetCustomersQuery, useGetTeamsQuery, useGetVirtualKeysQuery } from "
 import { useGetAllKeysQuery, useGetProvidersQuery } from "@/lib/store/apis/providersApi";
 import { useCreateRoutingRuleMutation, useGetRoutingRulesQuery, useUpdateRoutingRuleMutation } from "@/lib/store/apis/routingRulesApi";
 import {
-	COMPLEXITY_TIER_VALUES,
-	ComplexityTargetFormData,
-	DEFAULT_COMPLEXITY_TARGET,
 	DEFAULT_ROUTING_RULE_FORM_DATA,
 	DEFAULT_ROUTING_TARGET,
 	ROUTING_RULE_SCOPES,
@@ -35,54 +32,6 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react
 import { useForm } from "react-hook-form";
 import { RuleGroupType, RuleType } from "react-querybuilder";
 import { toast } from "sonner";
-
-const COMPLEXITY_TIER_ORDER: Record<string, number> = COMPLEXITY_TIER_VALUES.reduce(
-	(acc, tier, i) => {
-		acc[tier] = i;
-		return acc;
-	},
-	{} as Record<string, number>,
-);
-
-function extractComplexityTiers(ruleGroup: RuleGroupType | undefined): string[] {
-	if (!ruleGroup?.rules) return [];
-	const tiers = new Set<string>();
-	const walk = (node: RuleType | RuleGroupType) => {
-		if ("rules" in node) {
-			node.rules.forEach(walk);
-			return;
-		}
-		if (node.field !== "complexity_tier") return;
-		const value = node.value;
-		const pushString = (s: unknown) => {
-			if (typeof s === "string" && s.trim()) tiers.add(s.trim());
-		};
-		if (Array.isArray(value)) {
-			value.forEach(pushString);
-		} else if (typeof value === "string") {
-			if (node.operator === "in" || node.operator === "notIn") {
-				try {
-					const parsed = JSON.parse(value);
-					if (Array.isArray(parsed)) {
-						parsed.forEach(pushString);
-						return;
-					}
-				} catch {
-					/* fall through to comma-split */
-				}
-				value.split(",").forEach(pushString);
-			} else {
-				pushString(value);
-			}
-		}
-	};
-	ruleGroup.rules.forEach(walk);
-	return Array.from(tiers).sort((a, b) => {
-		const oa = COMPLEXITY_TIER_ORDER[a] ?? Number.MAX_SAFE_INTEGER;
-		const ob = COMPLEXITY_TIER_ORDER[b] ?? Number.MAX_SAFE_INTEGER;
-		return oa - ob || a.localeCompare(b);
-	});
-}
 
 interface RoutingRuleDialogProps {
 	open: boolean;
@@ -123,7 +72,6 @@ export function RoutingRuleSheet({ open, onOpenChange, editingRule, onSuccess }:
 	const [targets, setTargets] = useState<RoutingTargetFormData[]>([{ ...DEFAULT_ROUTING_TARGET }]);
 	const [query, setQuery] = useState<RuleGroupType>(defaultQuery);
 	const [builderKey, setBuilderKey] = useState(0);
-	const [complexityTargets, setComplexityTargets] = useState<Record<string, ComplexityTargetFormData>>({});
 
 	const {
 		register,
@@ -188,64 +136,14 @@ export function RoutingRuleSheet({ open, onOpenChange, editingRule, onSuccess }:
 			} else {
 				setQuery(defaultQuery);
 			}
-			const existing = editingRule.complexity_targets || {};
-			setComplexityTargets(
-				Object.fromEntries(
-					Object.entries(existing).map(([tier, t]) => [
-						tier,
-						{
-							provider: t?.provider || "",
-							model: t?.model || "",
-						},
-					]),
-				),
-			);
 			setBuilderKey((prev) => prev + 1);
 		} else {
 			reset();
 			setTargets([{ ...DEFAULT_ROUTING_TARGET }]);
 			setQuery(defaultQuery);
-			setComplexityTargets({});
 			setBuilderKey((prev) => prev + 1);
 		}
 	}, [editingRule, open, setValue, reset]);
-
-	const complexityTiers = useMemo(() => extractComplexityTiers(query), [query]);
-	const hasComplexityRule = complexityTiers.length > 0;
-
-	// Reconcile complexityTargets with the tiers currently referenced by the query
-	useEffect(() => {
-		setComplexityTargets((prev) => {
-			const next: Record<string, ComplexityTargetFormData> = {};
-			let changed = false;
-			for (const tier of complexityTiers) {
-				if (prev[tier]) {
-					next[tier] = prev[tier];
-				} else {
-					next[tier] = { ...DEFAULT_COMPLEXITY_TARGET };
-					changed = true;
-				}
-			}
-			if (!changed && Object.keys(prev).length === complexityTiers.length) {
-				return prev;
-			}
-			return next;
-		});
-	}, [complexityTiers]);
-
-	const updateComplexityTarget = (
-		tier: string,
-		field: keyof ComplexityTargetFormData,
-		value: string,
-	) => {
-		setComplexityTargets((prev) => ({
-			...prev,
-			[tier]: {
-				...(prev[tier] || { ...DEFAULT_COMPLEXITY_TARGET }),
-				[field]: value,
-			},
-		}));
-	};
 
 	const handleQueryChange = useCallback(
 		(expression: string, newQuery: RuleGroupType) => {
@@ -313,26 +211,6 @@ export function RoutingRuleSheet({ open, onOpenChange, editingRule, onSuccess }:
 			return provider && provider.length > 0;
 		});
 
-		// Build complexity_targets payload — only include tiers referenced by the query
-		// and that have at least a provider or model set.
-		let complexityTargetsPayload: Record<string, { provider?: string; model?: string }> | undefined;
-		if (hasComplexityRule) {
-			const entries: [string, { provider?: string; model?: string }][] = [];
-			for (const tier of complexityTiers) {
-				const t = complexityTargets[tier];
-				if (!t) continue;
-				if (!t.provider && !t.model) continue;
-				entries.push([
-					tier,
-					{
-						provider: t.provider || undefined,
-						model: t.model || undefined,
-					},
-				]);
-			}
-			complexityTargetsPayload = entries.length > 0 ? Object.fromEntries(entries) : undefined;
-		}
-
 		const payload = {
 			name: data.name,
 			description: data.description,
@@ -350,7 +228,6 @@ export function RoutingRuleSheet({ open, onOpenChange, editingRule, onSuccess }:
 			enabled: data.enabled,
 			chain_rule: data.chain_rule,
 			query: query,
-			complexity_targets: complexityTargetsPayload,
 		};
 
 		const submitPromise =
@@ -367,7 +244,6 @@ export function RoutingRuleSheet({ open, onOpenChange, editingRule, onSuccess }:
 				reset();
 				setTargets([{ ...DEFAULT_ROUTING_TARGET }]);
 				setQuery(defaultQuery);
-				setComplexityTargets({});
 				setBuilderKey((prev) => prev + 1);
 				onOpenChange(false);
 				onSuccess?.();
@@ -381,7 +257,6 @@ export function RoutingRuleSheet({ open, onOpenChange, editingRule, onSuccess }:
 		reset();
 		setTargets([{ ...DEFAULT_ROUTING_TARGET }]);
 		setQuery(defaultQuery);
-		setComplexityTargets({});
 		setBuilderKey((prev) => prev + 1);
 		onOpenChange(false);
 	};
@@ -618,31 +493,6 @@ export function RoutingRuleSheet({ open, onOpenChange, editingRule, onSuccess }:
 							{Math.abs(totalWeight - 1) > 0.001 && <span className="text-destructive">(must equal 1)</span>}
 						</div>
 					</div>
-
-					{/* Complexity Router Targets — only shown when a complexity_tier rule is present */}
-					{hasComplexityRule && (
-						<div className="space-y-3">
-							<div>
-								<Label>Complexity Router Targets</Label>
-								<p className="text-muted-foreground mt-0.5 text-xs">
-									Map each complexity tier referenced in your rules to a specific provider/model. Leave provider or model empty to use
-									the incoming request value.
-								</p>
-							</div>
-
-							<div className="space-y-3">
-								{complexityTiers.map((tier) => (
-									<ComplexityTargetRow
-										key={tier}
-										tier={tier}
-										target={complexityTargets[tier] || DEFAULT_COMPLEXITY_TARGET}
-										availableProviders={availableProviders}
-										onUpdate={updateComplexityTarget}
-									/>
-								))}
-							</div>
-						</div>
-					)}
 
 					{/* Fallbacks */}
 					<div className="space-y-3">
@@ -939,112 +789,6 @@ function TargetRow({ target, index, availableProviders, allKeys, showRemove, onU
 					</div>
 				</div>
 			)}
-		</div>
-	);
-}
-
-interface ComplexityTargetRowProps {
-	tier: string;
-	target: ComplexityTargetFormData;
-	availableProviders: string[];
-	onUpdate: (tier: string, field: keyof ComplexityTargetFormData, value: string) => void;
-}
-
-function ComplexityTargetRow({ tier, target, availableProviders, onUpdate }: ComplexityTargetRowProps) {
-	const testIdBase = `complexity-target-${tier.toLowerCase()}`;
-
-	return (
-		<div className="space-y-3 rounded-lg border p-3" data-testid={testIdBase}>
-			<div className="flex items-center justify-between">
-				<span className="text-muted-foreground text-sm font-medium">{tier}</span>
-			</div>
-
-			<div className="grid grid-cols-2 gap-3">
-				<div className="space-y-1.5">
-					<Label id={`${testIdBase}-provider-label`} className="text-xs">
-						Provider
-					</Label>
-					<div className="flex gap-1.5">
-						<Select
-							value={target.provider}
-							onValueChange={(value) => {
-								onUpdate(tier, "provider", value);
-								onUpdate(tier, "model", "");
-							}}
-						>
-							<SelectTrigger
-								id={`${testIdBase}-provider-select`}
-								aria-labelledby={`${testIdBase}-provider-label`}
-								className="h-9 flex-1 text-sm"
-								data-testid={`${testIdBase}-provider-select`}
-							>
-								<SelectValue placeholder="Incoming (optional)" />
-							</SelectTrigger>
-							<SelectContent>
-								{availableProviders.map((prov) => (
-									<SelectItem key={prov} value={prov}>
-										<div className="flex items-center gap-2">
-											<RenderProviderIcon provider={prov as ProviderIconType} size="sm" className="h-4 w-4" />
-											<span>{getProviderLabel(prov)}</span>
-										</div>
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-						{target.provider && (
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={() => {
-									onUpdate(tier, "provider", "");
-									onUpdate(tier, "model", "");
-								}}
-								className="h-9 w-9 p-0"
-								aria-label={`Clear provider for ${tier}`}
-								data-testid={`${testIdBase}-provider-clear`}
-							>
-								<X className="h-3.5 w-3.5" />
-							</Button>
-						)}
-					</div>
-				</div>
-
-				<div className="space-y-1.5">
-					<Label id={`${testIdBase}-model-label`} className="text-xs">
-						Model
-					</Label>
-					<div className="flex gap-1.5">
-						<div className="flex-1" data-testid={`${testIdBase}-model-select`}>
-							<ModelMultiselect
-								provider={target.provider || undefined}
-								value={target.model}
-								onChange={(value) => onUpdate(tier, "model", value)}
-								placeholder="Incoming (optional)"
-								isSingleSelect
-								loadModelsOnEmptyProvider
-								className="!h-9 !min-h-9"
-								inputId={`${testIdBase}-model-input`}
-								ariaLabelledBy={`${testIdBase}-model-label`}
-							/>
-						</div>
-						{target.model && (
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={() => onUpdate(tier, "model", "")}
-								className="h-9 w-9 p-0"
-								aria-label={`Clear model for ${tier}`}
-								data-testid={`${testIdBase}-model-clear`}
-							>
-								<X className="h-3.5 w-3.5" />
-							</Button>
-						)}
-					</div>
-				</div>
-			</div>
-
 		</div>
 	);
 }

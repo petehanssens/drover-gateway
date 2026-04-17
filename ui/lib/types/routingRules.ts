@@ -81,11 +81,6 @@ export interface RoutingTargetFormData {
 	weight: number;
 }
 
-export interface ComplexityTargetFormData {
-	provider: string;
-	model: string;
-}
-
 export interface RoutingRuleFormData {
 	id?: string;
 	name: string;
@@ -99,16 +94,10 @@ export interface RoutingRuleFormData {
 	enabled: boolean;
 	chain_rule: boolean;
 	query?: RuleGroupType;
-	complexity_targets?: Record<string, ComplexityTargetFormData>;
 	isDirty?: boolean;
 }
 
 export const COMPLEXITY_TIER_VALUES = ["SIMPLE", "MEDIUM", "COMPLEX", "REASONING"] as const;
-
-export const DEFAULT_COMPLEXITY_TARGET: ComplexityTargetFormData = {
-	provider: "",
-	model: "",
-};
 
 export enum RoutingRuleScope {
 	Global = "global",

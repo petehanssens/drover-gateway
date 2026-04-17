@@ -375,7 +375,7 @@ func resolveAnalyzerConfigFromStoreOrArg(
 		}
 	}
 	if configStore != nil {
-		cfg, err := configstore.GetComplexityAnalyzerConfig(ctx, configStore)
+		cfg, err := configStore.GetComplexityAnalyzerConfig(ctx)
 		if err != nil {
 			if logger != nil {
 				logger.Warn("failed to load complexity analyzer config from store, falling back to configured/default values: %v", err)
@@ -944,7 +944,14 @@ func (p *GovernancePlugin) applyRoutingRules(ctx *schemas.BifrostContext, req *s
 		computeComplexity = func() *complexity.ComplexityResult {
 			if input, ok := buildComplexityInput(ctx, body); ok {
 				result := analyzer.Analyze(input)
-				p.logger.Debug("[Governance] Complexity analysis details: %s", complexity.FormatDebug(result))
+				if p.logger != nil {
+					p.logger.Debug(
+						"[Governance] Complexity analysis details: tier=%s score=%.2f words=%d",
+						result.Tier,
+						result.Score,
+						result.WordCount,
+					)
+				}
 				ctx.AppendRoutingEngineLog(schemas.RoutingEngineRoutingRule, complexity.FormatLog(result))
 				return result
 			}

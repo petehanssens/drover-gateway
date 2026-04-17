@@ -37,6 +37,7 @@ import {
 	UpdateVirtualKeyRequest,
 	VirtualKey,
 } from "@/lib/types/governance";
+import { AnalyzerConfig } from "@/lib/types/complexityRouter";
 import { baseApi } from "./baseApi";
 
 type PricingOverrideQueryArgs = {
@@ -778,6 +779,59 @@ export const governanceApi = baseApi.injectEndpoints({
 				}
 			},
 		}),
+
+		// Complexity Analyzer
+		getComplexityAnalyzerConfig: builder.query<AnalyzerConfig, void>({
+			query: () => ({
+				url: "/governance/complexity",
+				method: "GET",
+			}),
+			providesTags: ["ComplexityAnalyzer"],
+		}),
+
+		updateComplexityAnalyzerConfig: builder.mutation<AnalyzerConfig, AnalyzerConfig>({
+			query: (data) => ({
+				url: "/governance/complexity",
+				method: "PUT",
+				body: data,
+			}),
+			async onQueryStarted(data, { dispatch, queryFulfilled }) {
+				const patch = dispatch(
+					governanceApi.util.updateQueryData("getComplexityAnalyzerConfig", undefined, () => data),
+				);
+				try {
+					const { data: updated } = await queryFulfilled;
+					if (updated) {
+						dispatch(
+							governanceApi.util.updateQueryData("getComplexityAnalyzerConfig", undefined, () => updated),
+						);
+					}
+				} catch {
+					patch.undo();
+				}
+			},
+			invalidatesTags: ["ComplexityAnalyzer"],
+		}),
+
+		resetComplexityAnalyzerConfig: builder.mutation<AnalyzerConfig, void>({
+			query: () => ({
+				url: "/governance/complexity/reset",
+				method: "POST",
+			}),
+			async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+				try {
+					const { data: defaults } = await queryFulfilled;
+					if (defaults) {
+						dispatch(
+							governanceApi.util.updateQueryData("getComplexityAnalyzerConfig", undefined, () => defaults),
+						);
+					}
+				} catch {
+					// Mutation failed — cached data stays as-is, RTK will refetch via invalidatesTags.
+				}
+			},
+			invalidatesTags: ["ComplexityAnalyzer"],
+		}),
 	}),
 });
 
@@ -838,6 +892,11 @@ export const {
 	useGetProviderGovernanceQuery,
 	useUpdateProviderGovernanceMutation,
 	useDeleteProviderGovernanceMutation,
+
+	// Complexity Analyzer
+	useGetComplexityAnalyzerConfigQuery,
+	useUpdateComplexityAnalyzerConfigMutation,
+	useResetComplexityAnalyzerConfigMutation,
 
 	// Lazy queries
 	useLazyGetVirtualKeysQuery,

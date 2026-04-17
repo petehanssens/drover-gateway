@@ -137,15 +137,15 @@ func (a *ComplexityAnalyzer) Analyze(input ComplexityInput) *ComplexityResult {
 	tier := a.classifyTier(finalScore)
 	overrideReason := ""
 	if strongCount >= 2 {
-		if tier != "REASONING" {
-			overrideReason = "strong_reasoning_count"
+		if tier != TierReasoning {
+			overrideReason = TierOverrideReasonStrongReasoningCount
 		}
-		tier = "REASONING"
+		tier = TierReasoning
 	} else if strongCount >= 1 && (userCodeScore > 0.5 || userTechnicalScore > 0.5) {
-		if tier != "REASONING" {
-			overrideReason = "strong_reasoning_with_signal"
+		if tier != TierReasoning {
+			overrideReason = TierOverrideReasonStrongReasoningWithSignal
 		}
-		tier = "REASONING"
+		tier = TierReasoning
 	}
 
 	return &ComplexityResult{
@@ -239,12 +239,12 @@ func isReferentialFollowup(signals textSignalCounts, lastMsgScore, convScore flo
 func (a *ComplexityAnalyzer) classifyTier(score float64) string {
 	switch {
 	case score < a.tierBoundaries.SimpleMedium:
-		return "SIMPLE"
+		return TierSimple
 	case score < a.tierBoundaries.MediumComplex:
-		return "MEDIUM"
+		return TierMedium
 	case score < a.tierBoundaries.ComplexReasoning:
-		return "COMPLEX"
+		return TierComplex
 	default:
-		return "REASONING"
+		return TierReasoning
 	}
 }
