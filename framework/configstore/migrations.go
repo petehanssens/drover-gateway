@@ -414,6 +414,9 @@ func triggerMigrations(ctx context.Context, db *gorm.DB) error {
 	if err := migrationNormalizeOtelTraceType(ctx, db); err != nil {
 		return err
 	}
+	if err := migrationAddPerUserOAuthClientVirtualKeyID(ctx, db); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -6556,6 +6559,37 @@ func migrationNormalizeOtelTraceType(ctx context.Context, db *gorm.DB) error {
 	if err := m.Migrate(); err != nil {
 		return fmt.Errorf("error running normalize_otel_trace_type migration: %s", err.Error())
 
+	}
+	return nil
+}
+
+// migrationAddPerUserOAuthClientVirtualKeyID adds virtual_key_id to oauth_per_user_clients
+// so the VK supplied by the client at registration time can be stored and pre-populated
+// into the consent flow, skipping the manual identity-selection step.
+func migrationAddPerUserOAuthClientVirtualKeyID(ctx context.Context, db *gorm.DB) error {
+	m := migrator.New(db, migrator.DefaultOptions, []*migrator.Migration{{
+		ID: "add_per_user_oauth_client_virtual_key_id",
+		Migrate: func(tx *gorm.DB) error {
+			tx = tx.WithContext(ctx)
+			mg := tx.Migrator()
+			if !mg.HasColumn(&tables.TablePerUserOAuthClient{}, "virtual_key_id") {
+				if err := mg.AddColumn(&tables.TablePerUserOAuthClient{}, "VirtualKeyID"); err != nil {
+					return fmt.Errorf("failed to add virtual_key_id column: %w", err)
+				}
+			}
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			tx = tx.WithContext(ctx)
+			mg := tx.Migrator()
+			if mg.HasColumn(&tables.TablePerUserOAuthClient{}, "virtual_key_id") {
+				_ = mg.DropColumn(&tables.TablePerUserOAuthClient{}, "VirtualKeyID")
+			}
+			return nil
+		},
+	}})
+	if err := m.Migrate(); err != nil {
+		return fmt.Errorf("error running add_per_user_oauth_client_virtual_key_id migration: %s", err.Error())
 	}
 	return nil
 }

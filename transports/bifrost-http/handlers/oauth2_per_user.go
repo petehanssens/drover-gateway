@@ -100,6 +100,15 @@ func (h *PerUserOAuthHandler) handleDynamicClientRegistration(ctx *fasthttp.Requ
 		GrantTypes:   string(grantTypesJSON),
 	}
 
+	// If the client sends a VK in the Authorization header, store it so the consent
+	// flow can skip the manual identity-selection step.
+	if authHeader := strings.TrimSpace(string(ctx.Request.Header.Peek("Authorization"))); authHeader != "" {
+		if vk, err := h.store.ConfigStore.GetVirtualKeyByValue(ctx, authHeader); err == nil && vk != nil && vk.IsActive {
+			vkID := vk.ID
+			client.VirtualKeyID = &vkID
+		}
+	}
+
 	if err := h.store.ConfigStore.CreatePerUserOAuthClient(ctx, client); err != nil {
 		SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("Failed to register client: %v", err))
 		return
@@ -189,12 +198,15 @@ func (h *PerUserOAuthHandler) handleAuthorize(ctx *fasthttp.RequestCtx) {
 	browserSecretHash := fmt.Sprintf("%x", sha256.Sum256([]byte(browserSecret)))
 
 	// Create a PendingFlow to carry OAuth params through the consent screen.
+	// Pre-populate VirtualKeyID from the registered client if it was set at registration time
+	// (i.e. the client sent its VK in the Authorization header during /register).
 	flow := &tables.TablePerUserOAuthPendingFlow{
 		ID:                uuid.New().String(),
 		ClientID:          clientID,
 		RedirectURI:       redirectURI,
 		CodeChallenge:     codeChallenge,
 		State:             state,
+		VirtualKeyID:      client.VirtualKeyID,
 		BrowserSecretHash: browserSecretHash,
 		ExpiresAt:         time.Now().Add(15 * time.Minute),
 	}
@@ -202,7 +214,7 @@ func (h *PerUserOAuthHandler) handleAuthorize(ctx *fasthttp.RequestCtx) {
 		SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("Failed to create pending flow: %v", err))
 		return
 	}
-	logger.Debug("[oauth/authorize] PendingFlow created: flow_id=%s client_id=%s", flow.ID, clientID)
+	logger.Debug("[oauth/authorize] PendingFlow created: flow_id=%s client_id=%s vk_prepopulated=%v", flow.ID, clientID, client.VirtualKeyID != nil)
 
 	// Set HttpOnly cookie binding this flow to the current browser.
 	var cookie fasthttp.Cookie
@@ -216,8 +228,14 @@ func (h *PerUserOAuthHandler) handleAuthorize(ctx *fasthttp.RequestCtx) {
 	cookie.SetMaxAge(15 * 60) // 15 minutes, matching flow TTL
 	ctx.Response.Header.SetCookie(&cookie)
 
-	// Redirect to consent screen with flow_id (relative path — stays on current origin).
-	consentURL := fmt.Sprintf("/oauth/consent?flow_id=%s", url.QueryEscape(flow.ID))
+	// If VK was pre-populated from registration, skip the identity page and go straight
+	// to the MCP connections screen.
+	var consentURL string
+	if client.VirtualKeyID != nil {
+		consentURL = fmt.Sprintf("/oauth/consent/mcps?flow_id=%s", url.QueryEscape(flow.ID))
+	} else {
+		consentURL = fmt.Sprintf("/oauth/consent?flow_id=%s", url.QueryEscape(flow.ID))
+	}
 	ctx.Redirect(consentURL, fasthttp.StatusFound)
 }
 

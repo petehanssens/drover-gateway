@@ -251,13 +251,14 @@ func (t *TableOauthUserToken) AfterFind(tx *gorm.DB) error {
 // MCP clients (like Claude Code) register themselves with Bifrost's OAuth
 // authorization server to obtain a client_id for the authorization code flow.
 type TablePerUserOAuthClient struct {
-	ID           string    `gorm:"type:varchar(255);primaryKey" json:"id"`
-	ClientID     string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"client_id"`
-	ClientName   string    `gorm:"type:varchar(255)" json:"client_name"`
-	RedirectURIs string    `gorm:"type:text;not null" json:"redirect_uris"` // JSON array of allowed redirect URIs
-	GrantTypes   string    `gorm:"type:text" json:"grant_types"`            // JSON array of grant types
-	CreatedAt    time.Time `gorm:"index;not null" json:"created_at"`
-	UpdatedAt    time.Time `gorm:"index;not null" json:"updated_at"`
+	ID             string    `gorm:"type:varchar(255);primaryKey" json:"id"`
+	ClientID       string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"client_id"`
+	ClientName     string    `gorm:"type:varchar(255)" json:"client_name"`
+	RedirectURIs   string    `gorm:"type:text;not null" json:"redirect_uris"` // JSON array of allowed redirect URIs
+	GrantTypes     string    `gorm:"type:text" json:"grant_types"`            // JSON array of grant types
+	VirtualKeyID   *string   `gorm:"type:varchar(255);index" json:"virtual_key_id"` // Pre-populated from Authorization header at registration
+	CreatedAt      time.Time `gorm:"index;not null" json:"created_at"`
+	UpdatedAt      time.Time `gorm:"index;not null" json:"updated_at"`
 }
 
 // TableName returns the table name for per-user OAuth clients.

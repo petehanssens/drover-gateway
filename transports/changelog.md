@@ -1,0 +1,1 @@
+- feat: auto vk detection in per user mcp oauth registration
