@@ -11,6 +11,48 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestEnsureGenAIStreamQuery(t *testing.T) {
+	t.Run("adds alt sse for vertex streamGenerateContent without query", func(t *testing.T) {
+		query := ensureGenAIStreamQuery(
+			"/projects/p/locations/us-central1/publishers/google/models/gemini-2.5-flash:streamGenerateContent",
+			"",
+			schemas.Vertex,
+			true,
+		)
+		assert.Equal(t, "alt=sse", query)
+	})
+
+	t.Run("preserves existing alt query", func(t *testing.T) {
+		query := ensureGenAIStreamQuery(
+			"/models/gemini-2.5-flash:streamGenerateContent",
+			"alt=json&foo=bar",
+			schemas.Gemini,
+			true,
+		)
+		assert.Equal(t, "alt=sse&foo=bar", query)
+	})
+
+	t.Run("does not modify non-stream paths", func(t *testing.T) {
+		query := ensureGenAIStreamQuery(
+			"/models/gemini-2.5-flash:generateContent",
+			"",
+			schemas.Vertex,
+			false,
+		)
+		assert.Equal(t, "", query)
+	})
+
+	t.Run("preserves raw ordering and encoding while replacing alt", func(t *testing.T) {
+		query := ensureGenAIStreamQuery(
+			"/models/gemini-2.5-flash:streamGenerateContent",
+			"foo=%2B&alt=json%2B&bar=a+b",
+			schemas.Vertex,
+			true,
+		)
+		assert.Equal(t, "foo=%2B&alt=sse&bar=a+b", query)
+	})
+}
+
 func TestRequestWithSettableExtraParams_OpenAIChatRequest(t *testing.T) {
 	t.Run("SetExtraParams populates both standalone and embedded ExtraParams", func(t *testing.T) {
 		req := &openai.OpenAIChatRequest{}

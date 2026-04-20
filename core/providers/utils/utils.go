@@ -2303,6 +2303,28 @@ func ReleaseStreamingResponse(resp *fasthttp.Response) {
 	}
 }
 
+// ReleaseStreamingResponseNoDrain releases a streaming response without draining
+// unread bytes from the body stream. Use this only for passthrough-style streams
+// where immediate teardown is preferred over connection reuse.
+func ReleaseStreamingResponseNoDrain(resp *fasthttp.Response) {
+	defer func() {
+		if r := recover(); r != nil {
+			getLogger().Error("recovered panic in ReleaseStreamingResponseNoDrain: %v", r)
+		}
+		fasthttp.ReleaseResponse(resp)
+	}()
+	if resp == nil {
+		return
+	}
+	if bodyStream := resp.BodyStream(); bodyStream != nil {
+		if closer, ok := bodyStream.(io.Closer); ok {
+			if err := closer.Close(); err != nil {
+				getLogger().Warn("failed to close streaming response body: %v", err)
+			}
+		}
+	}
+}
+
 // GetBifrostResponseForStreamResponse converts the provided responses to a bifrost response.
 func GetBifrostResponseForStreamResponse(
 	textCompletionResponse *schemas.BifrostTextCompletionResponse,

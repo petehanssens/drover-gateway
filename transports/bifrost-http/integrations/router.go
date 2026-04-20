@@ -1544,7 +1544,6 @@ func (g *GenericRouter) handleAsyncRetrieve(
 	}
 
 	g.handleAsyncJobResponse(ctx, bifrostCtx, config, job)
-	return
 }
 
 func (g *GenericRouter) handleAsyncJobResponse(ctx *fasthttp.RequestCtx, bifrostCtx *schemas.BifrostContext, config RouteConfig, job *logstore.AsyncJob) {
@@ -2703,11 +2702,12 @@ func (g *GenericRouter) handlePassthrough(ctx *fasthttp.RequestCtx) {
 	}
 	provider = getProviderFromHeader(ctx, provider)
 	isStreaming := strings.Contains(strings.ToLower(path), "stream") || bodyStream
+	rawQuery := ensureGenAIStreamQuery(path, string(ctx.URI().QueryString()), provider, isStreaming)
 
 	passthroughReq := &schemas.BifrostPassthroughRequest{
 		Method:      string(ctx.Method()),
 		Path:        path,
-		RawQuery:    string(ctx.URI().QueryString()),
+		RawQuery:    rawQuery,
 		Body:        body,
 		SafeHeaders: safeHeaders,
 		Provider:    provider,
@@ -2719,6 +2719,39 @@ func (g *GenericRouter) handlePassthrough(ctx *fasthttp.RequestCtx) {
 	} else {
 		g.handlePassthroughNonStream(ctx, bifrostCtx, cancel, provider, passthroughReq)
 	}
+}
+
+func ensureGenAIStreamQuery(path, rawQuery string, provider schemas.ModelProvider, isStreaming bool) string {
+	if !isStreaming || !strings.Contains(path, ":streamGenerateContent") {
+		return rawQuery
+	}
+	if provider != schemas.Gemini && provider != schemas.Vertex {
+		return rawQuery
+	}
+	if rawQuery == "" {
+		return "alt=sse"
+	}
+
+	parts := strings.Split(rawQuery, "&")
+	updated := false
+	for i, part := range parts {
+		key := part
+		if eq := strings.IndexByte(part, '='); eq >= 0 {
+			key = part[:eq]
+		}
+		if strings.EqualFold(key, "alt") {
+			parts[i] = "alt=sse"
+			updated = true
+		}
+	}
+	if updated {
+		return strings.Join(parts, "&")
+	}
+
+	if strings.HasSuffix(rawQuery, "&") {
+		return rawQuery + "alt=sse"
+	}
+	return rawQuery + "&alt=sse"
 }
 
 func (g *GenericRouter) handlePassthroughNonStream(

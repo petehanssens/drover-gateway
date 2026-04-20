@@ -2893,7 +2893,6 @@ func (provider *VertexProvider) Passthrough(
 		}
 		fasthttpReq.Header.Set(k, v)
 	}
-
 	if len(req.Body) > 0 && strings.Contains(strings.ToLower(string(fasthttpReq.Header.ContentType())), "application/json") {
 		region := keyRegion
 		// Replace fully-qualified model paths that have placeholder project/location
@@ -3058,7 +3057,7 @@ func (provider *VertexProvider) PassthroughStream(
 
 	activeClient := providerUtils.PrepareResponseStreaming(ctx, provider.streamingClient, resp)
 	if err := activeClient.Do(fasthttpReq, resp); err != nil {
-		providerUtils.ReleaseStreamingResponse(resp)
+		providerUtils.ReleaseStreamingResponseNoDrain(resp)
 		if errors.Is(err, context.Canceled) {
 			return nil, &schemas.BifrostError{
 				IsBifrostError: false,
@@ -3118,7 +3117,7 @@ func (provider *VertexProvider) PassthroughStream(
 			}
 			close(ch)
 		}()
-		defer providerUtils.ReleaseStreamingResponse(resp)
+		defer providerUtils.ReleaseStreamingResponseNoDrain(resp)
 		defer stopIdleTimeout()
 		defer stopCancellation()
 
