@@ -795,8 +795,17 @@ func HandleAnthropicChatCompletionStreaming(
 					if usage.PromptTokensDetails == nil {
 						usage.PromptTokensDetails = &schemas.ChatPromptTokensDetails{}
 					}
+					if usage.PromptTokensDetails.CachedWriteTokenDetails == nil {
+						usage.PromptTokensDetails.CachedWriteTokenDetails = &schemas.ChatCachedWriteTokenDetails{}
+					}
 					if usageToProcess.CacheCreationInputTokens > usage.PromptTokensDetails.CachedWriteTokens {
 						usage.PromptTokensDetails.CachedWriteTokens = usageToProcess.CacheCreationInputTokens
+					}
+					if usageToProcess.CacheCreation.Ephemeral5mInputTokens > usage.PromptTokensDetails.CachedWriteTokenDetails.CachedWriteTokens5m {
+						usage.PromptTokensDetails.CachedWriteTokenDetails.CachedWriteTokens5m = usageToProcess.CacheCreation.Ephemeral5mInputTokens
+					}
+					if usageToProcess.CacheCreation.Ephemeral1hInputTokens > usage.PromptTokensDetails.CachedWriteTokenDetails.CachedWriteTokens1h {
+						usage.PromptTokensDetails.CachedWriteTokenDetails.CachedWriteTokens1h = usageToProcess.CacheCreation.Ephemeral1hInputTokens
 					}
 				}
 			}
@@ -1253,8 +1262,17 @@ func HandleAnthropicResponsesStream(
 					if usage.InputTokensDetails == nil {
 						usage.InputTokensDetails = &schemas.ResponsesResponseInputTokens{}
 					}
+					if usage.InputTokensDetails.CachedWriteTokenDetails == nil {
+						usage.InputTokensDetails.CachedWriteTokenDetails = &schemas.ChatCachedWriteTokenDetails{}
+					}
 					if usageToProcess.CacheCreationInputTokens > usage.InputTokensDetails.CachedWriteTokens {
 						usage.InputTokensDetails.CachedWriteTokens = usageToProcess.CacheCreationInputTokens
+					}
+					if usageToProcess.CacheCreation.Ephemeral5mInputTokens > usage.InputTokensDetails.CachedWriteTokenDetails.CachedWriteTokens5m {
+						usage.InputTokensDetails.CachedWriteTokenDetails.CachedWriteTokens5m = usageToProcess.CacheCreation.Ephemeral5mInputTokens
+					}
+					if usageToProcess.CacheCreation.Ephemeral1hInputTokens > usage.InputTokensDetails.CachedWriteTokenDetails.CachedWriteTokens1h {
+						usage.InputTokensDetails.CachedWriteTokenDetails.CachedWriteTokens1h = usageToProcess.CacheCreation.Ephemeral1hInputTokens
 					}
 				}
 			}
