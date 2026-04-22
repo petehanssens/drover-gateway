@@ -6,35 +6,14 @@ import (
 	"strings"
 )
 
-// FormatLog renders a human-readable, multi-line summary of the complexity
-// analysis for the routing engine log. The primary line carries
-// tier/score/word-count/non-zero match counts; conditional annotation lines
-// are appended only when they actually apply (tier override, output floor,
-// referential followup, conversation blending). The full scoring internals
-// (dimensions, contributions, dampener) are emitted separately by FormatDebug
+// FormatLog renders the concise routing-engine log summary for complexity
+// analysis. Detailed scoring internals are emitted separately by FormatDebug
 // for engineer-level debug logs.
 func FormatLog(result *ComplexityResult) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "Complexity: tier=%s score=%.2f words=%d matches=[%s]",
 		result.Tier, result.Score, result.WordCount,
 		formatMatchCounts(result))
-
-	if result.TierOverrideReason != "" {
-		fmt.Fprintf(&b, "\n  └─ tier override: %s (%d reasoning keyword match%s → promoted to REASONING)",
-			result.TierOverrideReason, result.ReasoningMatchCount,
-			pluralS(result.ReasoningMatchCount))
-	}
-	if result.OutputFloorApplied {
-		fmt.Fprintf(&b, "\n  └─ output-floor applied: strong output signals set minimum score %.2f",
-			result.OutputFloorMinScore)
-	}
-	if result.ReferentialFollowup {
-		fmt.Fprintf(&b, "\n  └─ referential-followup: short ask interpreted as continuation of prior turn")
-	}
-	if result.ConversationBlend > result.LastMessageScore+0.02 {
-		fmt.Fprintf(&b, "\n  └─ conversation-blended: last-message %.2f → %.2f (prior turns pulled score up)",
-			result.LastMessageScore, result.ConversationBlend)
-	}
 	return b.String()
 }
 
@@ -145,11 +124,4 @@ func formatMatchCounts(result *ComplexityResult) string {
 		return "none"
 	}
 	return strings.Join(parts, " ")
-}
-
-func pluralS(n int) string {
-	if n == 1 {
-		return ""
-	}
-	return "es"
 }

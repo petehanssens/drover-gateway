@@ -26,7 +26,7 @@ type ComplexityContributions struct {
 type ComplexityResult struct {
 	// Weighted total score (0.0–1.0)
 	Score float64
-	// Computed tier: "SIMPLE", "MEDIUM", "COMPLEX", or "REASONING"
+	// Computed tier. See the Tier* constants in this package.
 	Tier string
 
 	// Individual dimension scores used in the weighted sum (0.0–1.0 each)
@@ -60,12 +60,21 @@ type ComplexityResult struct {
 
 	// TierOverrideReason is set when the tier was promoted past what the
 	// numeric score alone would classify. Empty when tier came from boundaries.
-	// Values: "strong_reasoning_count" (≥2 strong reasoning keywords) or
-	// "strong_reasoning_with_signal" (≥1 strong reasoning keyword plus
-	// code/technical signal). Used by the routing log so readers can see why
-	// a low-score prompt still ended up in REASONING.
+	// Values correspond to the TierOverrideReason* constants in this package.
+	// Used by the routing log so readers can see why a low-score prompt still
+	// ended up in REASONING.
 	TierOverrideReason string
 }
+
+const (
+	TierSimple    = "SIMPLE"
+	TierMedium    = "MEDIUM"
+	TierComplex   = "COMPLEX"
+	TierReasoning = "REASONING"
+
+	TierOverrideReasonStrongReasoningCount      = "strong_reasoning_count"
+	TierOverrideReasonStrongReasoningWithSignal = "strong_reasoning_with_signal"
+)
 
 // TierBoundaries defines the score thresholds for tier classification.
 type TierBoundaries = configstore.ComplexityTierBoundaries
