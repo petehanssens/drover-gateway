@@ -77,8 +77,9 @@ helm upgrade bifrost bifrost/bifrost \
 |-----------|-------------|---------|
 | `bifrost.client.allowedOrigins` | CORS allowed origins | `["*"]` |
 | `bifrost.client.allowDirectKeys` | Allow callers to pass provider keys directly in requests | `false` |
-| `bifrost.client.enforceGovernanceHeader` | Require `x-bf-vk` virtual-key header on every request | `false` |
+| `bifrost.client.enforceAuthOnInference` | Require auth (virtual key, API key, or user token) on `/v1/*` inference routes | `false` |
 | `bifrost.client.maxRequestBodySizeMb` | Maximum allowed request body size | `100` |
+| `bifrost.client.routingChainMaxDepth` | Maximum depth for routing rule chain evaluation | `10` |
 | `bifrost.client.whitelistedRoutes` | Routes that bypass auth middleware | `[]` |
 
 ```yaml
@@ -88,7 +89,7 @@ bifrost:
       - "https://app.yourdomain.com"
       - "https://admin.yourdomain.com"
     allowDirectKeys: false         # Prevent callers from supplying raw provider keys
-    enforceGovernanceHeader: true  # Every request must carry a virtual key
+    enforceAuthOnInference: true   # Inference routes (/v1/*) must carry auth (virtual key, API key, or user token)
     maxRequestBodySizeMb: 50
     whitelistedRoutes:
       - "/health"
@@ -98,7 +99,7 @@ bifrost:
 ```bash
 helm install bifrost bifrost/bifrost \
   --set image.tag=v1.4.11 \
-  --set bifrost.client.enforceGovernanceHeader=true \
+  --set bifrost.client.enforceAuthOnInference=true \
   --set bifrost.client.allowDirectKeys=false
 ```
 
@@ -135,13 +136,17 @@ bifrost:
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `bifrost.authConfig.isEnabled` | Enable username/password auth for the API and dashboard | `false` |
-| `bifrost.authConfig.adminUsername` | Admin username (plain text, prefer secret) | `""` |
-| `bifrost.authConfig.adminPassword` | Admin password (plain text, prefer secret) | `""` |
-| `bifrost.authConfig.existingSecret` | Kubernetes Secret name for credentials | `""` |
-| `bifrost.authConfig.usernameKey` | Key within the secret for username | `"username"` |
-| `bifrost.authConfig.passwordKey` | Key within the secret for password | `"password"` |
-| `bifrost.authConfig.disableAuthOnInference` | Skip auth check on `/v1/*` inference routes | `false` |
+| `bifrost.governance.authConfig.isEnabled` | Enable username/password auth for the API and dashboard | `false` |
+| `bifrost.governance.authConfig.adminUsername` | Admin username (plain text, prefer secret) | `""` |
+| `bifrost.governance.authConfig.adminPassword` | Admin password (plain text, prefer secret) | `""` |
+| `bifrost.governance.authConfig.existingSecret` | Kubernetes Secret name for credentials | `""` |
+| `bifrost.governance.authConfig.usernameKey` | Key within the secret for username | `"username"` |
+| `bifrost.governance.authConfig.passwordKey` | Key within the secret for password | `"password"` |
+| `bifrost.governance.authConfig.disableAuthOnInference` | Skip auth check on `/v1/*` inference routes | `false` |
+
+<Warning>
+**Deprecated path:** The top-level `bifrost.authConfig` is still accepted for backwards compatibility but `bifrost.governance.authConfig` is the canonical location and takes priority when both are set.
+</Warning>
 
 ```bash
 # Create secret first
@@ -152,12 +157,13 @@ kubectl create secret generic bifrost-admin \
 
 ```yaml
 bifrost:
-  authConfig:
-    isEnabled: true
-    disableAuthOnInference: false
-    existingSecret: "bifrost-admin"
-    usernameKey: "username"
-    passwordKey: "password"
+  governance:
+    authConfig:
+      isEnabled: true
+      disableAuthOnInference: false
+      existingSecret: "bifrost-admin"
+      usernameKey: "username"
+      passwordKey: "password"
 ```
 
 ```bash
@@ -236,10 +242,8 @@ Add custom labels to every Prometheus metric emitted by Bifrost:
 bifrost:
   client:
     prometheusLabels:
-      - name: "environment"
-        value: "production"
-      - name: "region"
-        value: "us-east-1"
+      - "environment=production"
+      - "region=us-east-1"
 ```
 
 ---
@@ -279,12 +283,13 @@ bifrost:
     name: "bifrost-encryption"
     key: "encryption-key"
 
-  authConfig:
-    isEnabled: true
-    disableAuthOnInference: false
-    existingSecret: "bifrost-admin"
-    usernameKey: "username"
-    passwordKey: "password"
+  governance:
+    authConfig:
+      isEnabled: true
+      disableAuthOnInference: false
+      existingSecret: "bifrost-admin"
+      usernameKey: "username"
+      passwordKey: "password"
 
   client:
     initialPoolSize: 1000
@@ -294,15 +299,14 @@ bifrost:
     enableLogging: true
     disableContentLogging: false
     logRetentionDays: 90
-    enforceGovernanceHeader: true
+    enforceAuthOnInference: true
     allowDirectKeys: false
     maxRequestBodySizeMb: 100
     headerFilterConfig:
       allowlist: []
       denylist: []
     prometheusLabels:
-      - name: "environment"
-        value: "production"
+      - "environment=production"
   mcp:
     toolSyncInterval: "10m"
     toolManagerConfig:

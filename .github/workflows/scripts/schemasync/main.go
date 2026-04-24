@@ -70,6 +70,7 @@ var ignoreSchemaProps = map[string]string{
 // ignoreGoFields keys are "schemaPath|fieldName"; value is the reason.
 var ignoreGoFields = map[string]string{
 	"|auth_config": "deprecated; moved to governance.auth_config",
+	"/properties/governance/properties/pricing_overrides/items|provider_key_id": "internal DB identifier; config uses provider_key_name alias",
 }
 
 // ignoreGoFieldNames are field names (regardless of parent path) that are
@@ -267,7 +268,7 @@ func printReport(w interface{ Write([]byte) (int, error) }, findings []Finding) 
 		if title == "" {
 			title = cat
 		}
-		fmt.Fprintf(w.(interface{ Write([]byte) (int, error) }), "\n### %s (%d)\n\n", title, len(items))
+		fmt.Fprintf(w, "\n### %s (%d)\n\n", title, len(items))
 		// Pick columns based on category for readability.
 		switch cat {
 		case "missing-in-schema", "schema-path-not-found":

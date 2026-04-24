@@ -356,6 +356,49 @@ bifrost:
 
 ---
 
+## Pricing Overrides
+
+Override default model pricing for cost tracking at various scopes — globally, per-provider, per-provider-key, per-virtual-key, or combinations.
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | Yes | Unique override ID |
+| `name` | Yes | Human-readable name |
+| `scope_kind` | Yes | Scope level: `global`, `provider`, `provider_key`, `virtual_key`, `virtual_key_provider`, `virtual_key_provider_key` |
+| `provider_id` | Conditional | Provider name (required for `provider*` scopes) |
+| `provider_key_name` | No | Provider key name alias (resolved to internal key ID at config load time) |
+| `virtual_key_id` | Conditional | Virtual key ID (required for `virtual_key*` scopes) |
+| `match_type` | Yes | `exact` or `wildcard` |
+| `pattern` | Yes | Model name pattern to match |
+| `request_types` | No | Request types this override applies to (e.g. `chat_completion`) |
+| `pricing_patch` | Yes | JSON-encoded pricing fields to override |
+
+```yaml
+bifrost:
+  governance:
+    pricingOverrides:
+      # Override pricing for a specific model globally
+      - id: "override-gpt4o-mini"
+        name: "GPT-4o-mini custom pricing"
+        scope_kind: "global"
+        match_type: "exact"
+        pattern: "gpt-4o-mini"
+        request_types: ["chat_completion"]
+        pricing_patch: '{"input_cost_per_token":0.000001,"output_cost_per_token":0.000002}'
+
+      # Override pricing for a specific provider key
+      - id: "override-azure-key"
+        name: "Azure enterprise pricing"
+        scope_kind: "provider_key"
+        provider_id: "azure"
+        provider_key_name: "azure-enterprise"
+        match_type: "wildcard"
+        pattern: "gpt-*"
+        pricing_patch: '{"input_cost_per_token":0.0000008,"output_cost_per_token":0.0000016}'
+```
+
+---
+
 ## Full Example
 
 ```yaml

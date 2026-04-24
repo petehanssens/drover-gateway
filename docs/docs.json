@@ -394,6 +394,7 @@
                 "pages": [
                   "deployment-guides/helm",
                   "deployment-guides/helm/values",
+                  "deployment-guides/helm/values-field-catalog",
                   "deployment-guides/helm/client",
                   "deployment-guides/helm/providers",
                   "deployment-guides/helm/storage",
@@ -410,6 +411,7 @@
                 "pages": [
                   "deployment-guides/config-json",
                   "deployment-guides/config-json/schema-reference",
+                  "deployment-guides/config-json/full-schema-catalog",
                   "deployment-guides/config-json/client",
                   "deployment-guides/config-json/providers",
                   "deployment-guides/config-json/storage",

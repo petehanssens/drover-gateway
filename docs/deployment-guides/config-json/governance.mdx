@@ -51,6 +51,8 @@ Virtual keys are issued to clients and act as scoped API tokens. Each key specif
         "name": "platform-team",
         "value": "env.VK_PLATFORM_TEAM",
         "is_active": true,
+        "budget_id": "budget-platform-monthly",
+        "rate_limit_id": "rl-platform-hourly",
         "provider_configs": [
           {
             "provider": "openai",
@@ -81,6 +83,7 @@ Virtual keys are issued to clients and act as scoped API tokens. Each key specif
 | `is_active` | No | Default `true`. Set `false` to disable without deleting |
 | `team_id` | No | Associate with a team (mutually exclusive with `customer_id`) |
 | `customer_id` | No | Associate with a customer |
+| `budget_id` | No | Attach a budget for spend tracking |
 | `rate_limit_id` | No | Attach a rate limit |
 | `calendar_aligned` | No | Snap budget resets to day/week/month/year boundaries |
 | `provider_configs` | No | Allowed provider/model/key combinations (empty = deny all) |
@@ -211,6 +214,122 @@ Routing rules dynamically select the provider and model for each request based o
 | `provider` | No | Target provider. Omit to keep the incoming request's provider |
 | `model` | No | Target model. Omit to keep the incoming request's model |
 | `key_id` | No | Pin a specific API key by name |
+
+---
+
+## Pricing Overrides
+
+Override default model pricing for cost tracking at various scopes — globally, per-provider, per-provider-key, per-virtual-key, or combinations.
+
+```json
+{
+  "governance": {
+    "pricing_overrides": [
+      {
+        "id": "override-gpt4o-mini",
+        "name": "GPT-4o-mini custom pricing",
+        "scope_kind": "global",
+        "match_type": "exact",
+        "pattern": "gpt-4o-mini",
+        "request_types": ["chat_completion"],
+        "pricing_patch": "{\"input_cost_per_token\":0.000001,\"output_cost_per_token\":0.000002}"
+      },
+      {
+        "id": "override-azure-key",
+        "name": "Azure enterprise pricing",
+        "scope_kind": "provider_key",
+        "provider_id": "azure",
+        "provider_key_name": "azure-enterprise",
+        "match_type": "wildcard",
+        "pattern": "gpt-*",
+        "request_types": ["chat_completion"],
+        "pricing_patch": "{\"input_cost_per_token\":0.0000008,\"output_cost_per_token\":0.0000016}"
+      }
+    ]
+  }
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | Yes | Unique override ID |
+| `name` | Yes | Human-readable name |
+| `scope_kind` | Yes | `"global"`, `"provider"`, `"provider_key"`, `"virtual_key"`, `"virtual_key_provider"`, `"virtual_key_provider_key"` |
+| `provider_id` | Conditional | Provider name (required for `provider*` scopes) |
+| `provider_key_name` | No | Provider key name alias (resolved to internal key ID at config load time) |
+| `virtual_key_id` | Conditional | Virtual key ID (required for `virtual_key*` scopes) |
+| `match_type` | Yes | `"exact"` or `"wildcard"` |
+| `pattern` | Yes | Model name pattern to match |
+| `request_types` | Yes | Request types this override applies to (e.g. `"chat_completion"`, `"embedding"`) |
+| `pricing_patch` | No | JSON-encoded pricing fields to override |
+
+---
+
+## Model Configs
+
+Attach budgets and rate limits at the per-model level:
+
+```json
+{
+  "governance": {
+    "model_configs": [
+      {
+        "id": "mc-gpt4o",
+        "model_name": "gpt-4o",
+        "budget_id": "budget-gpt4o",
+        "rate_limit_id": "rl-gpt4o"
+      },
+      {
+        "id": "mc-claude-openai-only",
+        "model_name": "claude-3-5-sonnet-20241022",
+        "provider": "anthropic",
+        "rate_limit_id": "rl-claude"
+      }
+    ]
+  }
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | Yes | Unique model config ID |
+| `model_name` | Yes | Model name to apply the configuration to |
+| `provider` | No | Optional provider name to scope this config to a specific provider |
+| `budget_id` | No | Budget ID to associate with this model |
+| `rate_limit_id` | No | Rate limit ID to associate with this model |
+
+---
+
+## Provider Governance
+
+Apply budgets, rate limits, and raw request/response controls at the provider level:
+
+```json
+{
+  "governance": {
+    "providers": [
+      {
+        "id": "gov-openai",
+        "name": "openai",
+        "description": "OpenAI provider governance",
+        "budget_id": "budget-openai-monthly",
+        "rate_limit_id": "rl-openai-hourly"
+      }
+    ]
+  }
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | Yes | Unique provider governance row ID |
+| `name` | Yes | Provider name (must match a configured provider in `providers`) |
+| `description` | No | Operator-facing description |
+| `budget_id` | No | Budget ID to associate with this provider |
+| `rate_limit_id` | No | Rate limit ID to associate with this provider |
+| `send_back_raw_request` | No | Include raw provider request in `BifrostResponse` |
+| `send_back_raw_response` | No | Include raw provider response in `BifrostResponse` |
+| `store_raw_request_response` | No | Capture raw request/response for internal logging only (default: `false`) |
 
 ---
 

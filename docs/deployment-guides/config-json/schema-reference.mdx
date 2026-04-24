@@ -10,6 +10,8 @@ The live schema is published at [`https://www.getbifrost.ai/schema`](https://www
 
 This page is a concise reference for every top-level key in `config.json`. Click the **Guide** links for full field-by-field documentation.
 
+For a complete field-by-field list generated from the transport schema, see [Full config schema catalog](/deployment-guides/config-json/full-schema-catalog).
+
 ---
 
 ## Top-Level Keys
@@ -29,9 +31,12 @@ This page is a concise reference for every top-level key in `config.json`. Click
 | `vector_store` | object | Vector database for semantic cache — Weaviate, Redis, Qdrant, Pinecone, Valkey | [Storage](/deployment-guides/config-json/storage#vector_store) |
 | `plugins` | array | Opt-in plugins: `semantic_cache`, `otel`, `maxim`, `datadog`, custom | [Plugins](/deployment-guides/config-json/plugins) |
 | `framework` | object | Model pricing catalog URL and sync interval | [Framework](#framework) |
-| `mcp` | object | MCP server and tool configuration | — |
+| `mcp` | object | MCP server and tool configuration | [Client](/deployment-guides/config-json/client#mcp-agent-settings) |
 | `websocket` | object | WebSocket / Realtime API connection pool tuning | [WebSocket](#websocket) |
-| `auth_config` | object | **Deprecated** — use `governance.auth_config` | [Client](/deployment-guides/config-json/client#authentication) |
+| `audit_logs` | object | Enterprise CADF-style audit logging controls | [Audit Logs](#audit_logs) |
+| `large_payload_optimization` | object | Large payload streaming optimization (avoids full materialization) | [Large Payload Optimization](#large_payload_optimization) |
+| `load_balancer_config` | object | Internal adaptive routing/load balancer settings | — |
+
 
 ---
 
@@ -70,15 +75,15 @@ Controls the worker pool, logging pipeline, security, and SDK shims. All fields 
 | `header_filter_config` | object | — | `allowlist` / `denylist` for `x-bf-eh-*` forwarded headers |
 | `prometheus_labels` | array | `[]` | Custom labels for all Prometheus metrics |
 | `compat` | object | — | SDK compatibility shims (`should_drop_params`, `convert_text_to_chat`, etc.) |
-| `mcp_agent_depth` | integer | `10` | Max tool-call recursion depth |
-| `mcp_tool_execution_timeout` | integer | `30` | Per-tool execution timeout in seconds |
-| `mcp_tool_sync_interval` | integer | `10` | Tool sync interval in minutes (`0` = disabled) |
-| `mcp_disable_auto_tool_inject` | boolean | `false` | Disable automatic MCP tool injection |
 | `async_job_result_ttl` | integer | `3600` | TTL for async job results in seconds |
 | `disable_db_pings_in_health` | boolean | `false` | Exclude DB connectivity from `/health` |
 | `routing_chain_max_depth` | integer | `10` | Max routing rule chain evaluation depth |
 
 Full documentation: [Client Configuration](/deployment-guides/config-json/client).
+
+<Note>
+MCP agent settings (`max_agent_depth`, `tool_execution_timeout`, etc.) are configured under the top-level [`mcp`](#mcp) block, not inside `client`.
+</Note>
 
 ---
 
@@ -89,6 +94,42 @@ Keyed by provider name. Each entry contains a `keys` array and optional `network
 Supported provider keys: `openai`, `anthropic`, `azure`, `bedrock`, `vertex`, `gemini`, `mistral`, `groq`, `cohere`, `perplexity`, `xai`, `cerebras`, `openrouter`, `nebius`, `fireworks`, `parasail`, `huggingface`, `replicate`, `ollama`, `vllm`, `sgl`, `elevenlabs`, `runway`.
 
 Full documentation: [Provider Setup](/deployment-guides/config-json/providers).
+
+---
+
+## `mcp`
+
+Model Context Protocol configuration for tool orchestration.
+
+| Sub-key | Type | Default | Description |
+|---------|------|---------|-------------|
+| `client_configs` | array | `[]` | MCP client/server definitions (stdio, http, streamable-http) |
+| `tool_manager_config.max_agent_depth` | integer | `10` | Maximum tool-call recursion depth |
+| `tool_manager_config.tool_execution_timeout` | integer | `30` | Per-tool execution timeout in seconds |
+| `tool_manager_config.code_mode_binding_level` | string | — | Code mode binding level: `"server"` or `"tool"` |
+| `tool_manager_config.disable_auto_tool_inject` | boolean | `false` | Disable automatic MCP tool injection |
+| `tool_sync_interval` | string | `"10m"` | Global tool sync interval (Go duration string, e.g. `"10m"`, `"0s"` to disable) |
+
+```json
+{
+  "mcp": {
+    "tool_sync_interval": "10m",
+    "tool_manager_config": {
+      "max_agent_depth": 10,
+      "tool_execution_timeout": 30
+    },
+    "client_configs": [
+      {
+        "client_id": "my-mcp-server",
+        "name": "my-mcp-server",
+        "connection_type": "http",
+        "connection_string": "https://example.com/mcp",
+        "auth_type": "none"
+      }
+    ]
+  }
+}
+```
 
 ---
 
@@ -231,6 +272,56 @@ Optional tuning for the WebSocket gateway (Responses API WebSocket mode, Realtim
 | `pool.max_total_connections` | `1000` | Max total idle upstream connections |
 | `pool.idle_timeout_seconds` | `600` | Evict idle connections after this many seconds |
 | `pool.max_connection_lifetime_seconds` | `7200` | Max lifetime of any upstream connection |
+
+---
+
+## `audit_logs`
+
+Enterprise CADF-compliant audit logging. Captures governance events (key creation, budget changes, routing rule updates) with optional HMAC signing.
+
+```json
+{
+  "audit_logs": {
+    "disabled": false,
+    "hmac_key": "env.BIFROST_AUDIT_HMAC_KEY",
+    "retention_days": 365
+  }
+}
+```
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `disabled` | `false` | Disable audit logging entirely |
+| `hmac_key` | — | HMAC secret key for signing audit events (minimum 32 bytes, supports `env.` prefix) |
+| `retention_days` | `0` (no limit) | Number of days to retain audit logs |
+
+---
+
+## `large_payload_optimization`
+
+Detects large request/response payloads and streams them through without full materialization. Useful for batch operations and large file uploads.
+
+```json
+{
+  "large_payload_optimization": {
+    "enabled": true,
+    "request_threshold_bytes": 10485760,
+    "response_threshold_bytes": 10485760,
+    "prefetch_size_bytes": 65536,
+    "max_payload_bytes": 524288000,
+    "truncated_log_bytes": 1048576
+  }
+}
+```
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `enabled` | `false` | Master toggle for large payload optimization |
+| `request_threshold_bytes` | `10485760` (10 MB) | Request body size above which streaming kicks in |
+| `response_threshold_bytes` | `10485760` (10 MB) | Response body size above which streaming kicks in |
+| `prefetch_size_bytes` | `65536` (64 KB) | How much of the request to prefetch for metadata extraction |
+| `max_payload_bytes` | `524288000` (500 MB) | Maximum allowed payload size; reject above this |
+| `truncated_log_bytes` | `1048576` (1 MB) | How many bytes to store as truncated preview in logs |
 
 ---
 

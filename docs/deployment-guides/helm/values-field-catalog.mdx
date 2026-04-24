@@ -1,0 +1,777 @@
+---
+title: "Helm values field catalog"
+description: "Exhaustive field-by-field reference for non-deprecated Helm values"
+icon: "list"
+---
+
+This page lists active (non-deprecated) Helm values fields with their meanings, grouped by top-level object.
+
+<Info>
+Sources: `helm-charts/bifrost/values.schema.json` and `helm-charts/bifrost/values.yaml`. Deprecated fields are intentionally excluded.
+</Info>
+
+## Jump by object
+
+- [`affinity`](#affinity)
+- [`autoscaling`](#autoscaling)
+- [`bifrost`](#bifrost)
+- [`deploymentAnnotations`](#deploymentannotations)
+- [`deploymentLabels`](#deploymentlabels)
+- [`env`](#env)
+- [`envFrom`](#envfrom)
+- [`extraEnv`](#extraenv)
+- [`fullnameOverride`](#fullnameoverride)
+- [`image`](#image)
+- [`imagePullSecrets`](#imagepullsecrets)
+- [`ingress`](#ingress)
+- [`initContainers`](#initcontainers)
+- [`lifecycle`](#lifecycle)
+- [`livenessProbe`](#livenessprobe)
+- [`nameOverride`](#nameoverride)
+- [`nodeSelector`](#nodeselector)
+- [`podAnnotations`](#podannotations)
+- [`podLabels`](#podlabels)
+- [`podSecurityContext`](#podsecuritycontext)
+- [`postgresql`](#postgresql)
+- [`readinessProbe`](#readinessprobe)
+- [`replicaCount`](#replicacount)
+- [`resources`](#resources)
+- [`securityContext`](#securitycontext)
+- [`service`](#service)
+- [`serviceAccount`](#serviceaccount)
+- [`storage`](#storage)
+- [`terminationGracePeriodSeconds`](#terminationgraceperiodseconds)
+- [`tolerations`](#tolerations)
+- [`vectorStore`](#vectorstore)
+- [`volumeMounts`](#volumemounts)
+- [`volumes`](#volumes)
+
+---
+
+## affinity
+
+| Field | Type | Meaning |
+|---|---|---|
+| `affinity` | `object` | Pod affinity/anti-affinity placement rules. |
+
+## autoscaling
+
+| Field | Type | Meaning |
+|---|---|---|
+| `autoscaling` | `object` | Configuration field `autoscaling` under `root values`. |
+| `autoscaling.enabled` | `boolean` | Whether Horizontal Pod Autoscaler controls pod replicas. |
+| `autoscaling.maxReplicas` | `integer` | Configuration field `maxReplicas` under `autoscaling`. |
+| `autoscaling.minReplicas` | `integer` | Configuration field `minReplicas` under `autoscaling`. |
+| `autoscaling.targetCPUUtilizationPercentage` | `integer` | Configuration field `targetCPUUtilizationPercentage` under `autoscaling`. |
+| `autoscaling.targetMemoryUtilizationPercentage` | `integer` | Configuration field `targetMemoryUtilizationPercentage` under `autoscaling`. |
+
+## bifrost
+
+| Field | Type | Meaning |
+|---|---|---|
+| `bifrost` | `object` | Bifrost application configuration |
+| `bifrost.accessProfiles` | `array` | Enterprise access profile templates rendered as top-level access_profiles in config.json |
+| `bifrost.accessProfiles[]` | `object` | Main Bifrost runtime configuration rendered into config.json. Field `accessProfiles` within `bifrost`. |
+| `bifrost.accessProfiles[].budgets` | `array` | Configuration field `budgets` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].budgets[]` | `object` | Configuration field `budgets` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].budgets[].id` | `string` | Configuration field `id` under `bifrost.accessProfiles[].budgets[]`. |
+| `bifrost.accessProfiles[].budgets[].max_limit` | `number` | Configuration field `max_limit` under `bifrost.accessProfiles[].budgets[]`. |
+| `bifrost.accessProfiles[].budgets[].reset_duration` | `string` | Configuration field `reset_duration` under `bifrost.accessProfiles[].budgets[]`. |
+| `bifrost.accessProfiles[].description` | `string` | Configuration field `description` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].is_active` | `boolean` | Configuration field `is_active` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].mcp_servers` | `array` | Configuration field `mcp_servers` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].mcp_servers[]` | `object` | Configuration field `mcp_servers` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].mcp_servers[].mcp_server_id` | `string` | Configuration field `mcp_server_id` under `bifrost.accessProfiles[].mcp_servers[]`. |
+| `bifrost.accessProfiles[].mcp_tool_groups` | `array` | Configuration field `mcp_tool_groups` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].mcp_tool_groups[]` | `object` | Configuration field `mcp_tool_groups` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].mcp_tool_groups[].tool_group_id` | `integer` | Configuration field `tool_group_id` under `bifrost.accessProfiles[].mcp_tool_groups[]`. |
+| `bifrost.accessProfiles[].mcp_tool_overrides` | `array` | Configuration field `mcp_tool_overrides` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].mcp_tool_overrides[]` | `object` | Configuration field `mcp_tool_overrides` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].mcp_tool_overrides[].action` | `string` | Configuration field `action` under `bifrost.accessProfiles[].mcp_tool_overrides[]`. |
+| `bifrost.accessProfiles[].mcp_tool_overrides[].mcp_client_id` | `string` | Configuration field `mcp_client_id` under `bifrost.accessProfiles[].mcp_tool_overrides[]`. |
+| `bifrost.accessProfiles[].mcp_tool_overrides[].tool_name` | `string` | Configuration field `tool_name` under `bifrost.accessProfiles[].mcp_tool_overrides[]`. |
+| `bifrost.accessProfiles[].name` | `string` | Configuration field `name` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].provider_configs` | `array` | Configuration field `provider_configs` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].provider_configs[]` | `object` | Configuration field `provider_configs` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].provider_configs[].all_models_allowed` | `boolean` | Configuration field `all_models_allowed` under `bifrost.accessProfiles[].provider_configs[]`. |
+| `bifrost.accessProfiles[].provider_configs[].allowed_models` | `array` | Configuration field `allowed_models` under `bifrost.accessProfiles[].provider_configs[]`. |
+| `bifrost.accessProfiles[].provider_configs[].allowed_models[]` | `string` | Configuration field `allowed_models` under `bifrost.accessProfiles[].provider_configs[]`. |
+| `bifrost.accessProfiles[].provider_configs[].budgets` | `array` | Configuration field `budgets` under `bifrost.accessProfiles[].provider_configs[]`. |
+| `bifrost.accessProfiles[].provider_configs[].budgets[]` | `object` | Configuration field `budgets` under `bifrost.accessProfiles[].provider_configs[]`. |
+| `bifrost.accessProfiles[].provider_configs[].budgets[].id` | `string` | Configuration field `id` under `bifrost.accessProfiles[].provider_configs[].budgets[]`. |
+| `bifrost.accessProfiles[].provider_configs[].budgets[].max_limit` | `number` | Configuration field `max_limit` under `bifrost.accessProfiles[].provider_configs[].budgets[]`. |
+| `bifrost.accessProfiles[].provider_configs[].budgets[].reset_duration` | `string` | Configuration field `reset_duration` under `bifrost.accessProfiles[].provider_configs[].budgets[]`. |
+| `bifrost.accessProfiles[].provider_configs[].provider_name` | `string` | Configuration field `provider_name` under `bifrost.accessProfiles[].provider_configs[]`. |
+| `bifrost.accessProfiles[].provider_configs[].rate_limit` | `object` | Configuration field `rate_limit` under `bifrost.accessProfiles[].provider_configs[]`. |
+| `bifrost.accessProfiles[].provider_configs[].rate_limit.id` | `string` | Configuration field `id` under `bifrost.accessProfiles[].provider_configs[].rate_limit`. |
+| `bifrost.accessProfiles[].provider_configs[].rate_limit.request_max_limit` | `integer` | Configuration field `request_max_limit` under `bifrost.accessProfiles[].provider_configs[].rate_limit`. |
+| `bifrost.accessProfiles[].provider_configs[].rate_limit.request_reset_duration` | `string` | Configuration field `request_reset_duration` under `bifrost.accessProfiles[].provider_configs[].rate_limit`. |
+| `bifrost.accessProfiles[].provider_configs[].rate_limit.token_max_limit` | `integer` | Configuration field `token_max_limit` under `bifrost.accessProfiles[].provider_configs[].rate_limit`. |
+| `bifrost.accessProfiles[].provider_configs[].rate_limit.token_reset_duration` | `string` | Configuration field `token_reset_duration` under `bifrost.accessProfiles[].provider_configs[].rate_limit`. |
+| `bifrost.accessProfiles[].rate_limit` | `object` | Configuration field `rate_limit` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].rate_limit.id` | `string` | Configuration field `id` under `bifrost.accessProfiles[].rate_limit`. |
+| `bifrost.accessProfiles[].rate_limit.request_max_limit` | `integer` | Configuration field `request_max_limit` under `bifrost.accessProfiles[].rate_limit`. |
+| `bifrost.accessProfiles[].rate_limit.request_reset_duration` | `string` | Configuration field `request_reset_duration` under `bifrost.accessProfiles[].rate_limit`. |
+| `bifrost.accessProfiles[].rate_limit.token_max_limit` | `integer` | Configuration field `token_max_limit` under `bifrost.accessProfiles[].rate_limit`. |
+| `bifrost.accessProfiles[].rate_limit.token_reset_duration` | `string` | Configuration field `token_reset_duration` under `bifrost.accessProfiles[].rate_limit`. |
+| `bifrost.accessProfiles[].tags` | `array` | Configuration field `tags` under `bifrost.accessProfiles[]`. |
+| `bifrost.accessProfiles[].tags[]` | `string` | Configuration field `tags` under `bifrost.accessProfiles[]`. |
+| `bifrost.appDir` | `string` | Application data directory |
+| `bifrost.auditLogs` | `object` | Main Bifrost runtime configuration rendered into config.json. Field `auditLogs` within `bifrost`. |
+| `bifrost.auditLogs.disabled` | `boolean` | Configuration field `disabled` under `bifrost.auditLogs`. |
+| `bifrost.auditLogs.hmacKey` | `string` | Configuration field `hmacKey` under `bifrost.auditLogs`. |
+| `bifrost.client` | `object` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. |
+| `bifrost.client.allowDirectKeys` | `boolean` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `allowDirectKeys` within `bifrost.client`. |
+| `bifrost.client.allowedHeaders` | `array` | Additional allowed headers for CORS and WebSocket |
+| `bifrost.client.allowedHeaders[]` | `string` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `allowedHeaders` within `bifrost.client`. |
+| `bifrost.client.allowedOrigins` | `array` | CORS allowed origins (supports "*" or URI strings) |
+| `bifrost.client.allowedOrigins[]` | `string[]` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `allowedOrigins` within `bifrost.client`. |
+| `bifrost.client.asyncJobResultTTL` | `integer` | Default TTL for async job results in seconds |
+| `bifrost.client.compat` | `object` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `compat` within `bifrost.client`. |
+| `bifrost.client.compat.convertChatToResponses` | `boolean` | Configuration field `convertChatToResponses` under `bifrost.client.compat`. |
+| `bifrost.client.compat.convertTextToChat` | `boolean` | Configuration field `convertTextToChat` under `bifrost.client.compat`. |
+| `bifrost.client.compat.shouldConvertParams` | `boolean` | Configuration field `shouldConvertParams` under `bifrost.client.compat`. |
+| `bifrost.client.compat.shouldDropParams` | `boolean` | Configuration field `shouldDropParams` under `bifrost.client.compat`. |
+| `bifrost.client.disableContentLogging` | `boolean` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `disableContentLogging` within `bifrost.client`. |
+| `bifrost.client.disableDbPingsInHealth` | `boolean` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `disableDbPingsInHealth` within `bifrost.client`. |
+| `bifrost.client.dropExcessRequests` | `boolean` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `dropExcessRequests` within `bifrost.client`. |
+| `bifrost.client.enableLogging` | `boolean` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `enableLogging` within `bifrost.client`. |
+| `bifrost.client.enforceAuthOnInference` | `boolean` | Require auth (VK, API key, or user token) on inference endpoints |
+
+
+| `bifrost.client.headerFilterConfig` | `object` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `headerFilterConfig` within `bifrost.client`. |
+| `bifrost.client.headerFilterConfig.allowlist` | `array` | Configuration field `allowlist` under `bifrost.client.headerFilterConfig`. |
+| `bifrost.client.headerFilterConfig.allowlist[]` | `string` | Configuration field `allowlist` under `bifrost.client.headerFilterConfig`. |
+| `bifrost.client.headerFilterConfig.denylist` | `array` | Configuration field `denylist` under `bifrost.client.headerFilterConfig`. |
+| `bifrost.client.headerFilterConfig.denylist[]` | `string` | Configuration field `denylist` under `bifrost.client.headerFilterConfig`. |
+| `bifrost.client.initialPoolSize` | `integer` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `initialPoolSize` within `bifrost.client`. |
+| `bifrost.client.logRetentionDays` | `integer` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `logRetentionDays` within `bifrost.client`. |
+| `bifrost.client.loggingHeaders` | `array` | Headers to capture in log metadata |
+| `bifrost.client.loggingHeaders[]` | `string` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `loggingHeaders` within `bifrost.client`. |
+| `bifrost.client.maxRequestBodySizeMb` | `integer` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `maxRequestBodySizeMb` within `bifrost.client`. |
+| `bifrost.client.prometheusLabels` | `array` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `prometheusLabels` within `bifrost.client`. |
+| `bifrost.client.prometheusLabels[]` | `string` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `prometheusLabels` within `bifrost.client`. |
+| `bifrost.client.requiredHeaders` | `array` | Headers that must be present on every request |
+| `bifrost.client.requiredHeaders[]` | `string` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `requiredHeaders` within `bifrost.client`. |
+| `bifrost.client.routingChainMaxDepth` | `integer` | Maximum depth for routing rule chain evaluation |
+| `bifrost.client.whitelistedRoutes` | `array` | Routes that bypass auth middleware |
+| `bifrost.client.whitelistedRoutes[]` | `string` | Client/runtime behavior: pool sizing, logging, CORS, request limits, and compatibility. Field `whitelistedRoutes` within `bifrost.client`. |
+| `bifrost.cluster` | `object` | Main Bifrost runtime configuration rendered into config.json. Field `cluster` within `bifrost`. |
+| `bifrost.cluster.discovery` | `object` | Configuration field `discovery` under `bifrost.cluster`. |
+| `bifrost.cluster.discovery.allowedAddressSpace` | `array` | Configuration field `allowedAddressSpace` under `bifrost.cluster.discovery`. |
+| `bifrost.cluster.discovery.allowedAddressSpace[]` | `string` | Configuration field `allowedAddressSpace` under `bifrost.cluster.discovery`. |
+| `bifrost.cluster.discovery.consulAddress` | `string` | Configuration field `consulAddress` under `bifrost.cluster.discovery`. |
+| `bifrost.cluster.discovery.dnsNames` | `array` | Configuration field `dnsNames` under `bifrost.cluster.discovery`. |
+| `bifrost.cluster.discovery.dnsNames[]` | `string` | Configuration field `dnsNames` under `bifrost.cluster.discovery`. |
+| `bifrost.cluster.discovery.enabled` | `boolean` | Configuration field `enabled` under `bifrost.cluster.discovery`. |
+| `bifrost.cluster.discovery.etcdEndpoints` | `array` | Configuration field `etcdEndpoints` under `bifrost.cluster.discovery`. |
+| `bifrost.cluster.discovery.etcdEndpoints[]` | `string` | Configuration field `etcdEndpoints` under `bifrost.cluster.discovery`. |
+| `bifrost.cluster.discovery.k8sLabelSelector` | `string` | Configuration field `k8sLabelSelector` under `bifrost.cluster.discovery`. |
+| `bifrost.cluster.discovery.k8sNamespace` | `string` | Configuration field `k8sNamespace` under `bifrost.cluster.discovery`. |
+| `bifrost.cluster.discovery.mdnsService` | `string` | Configuration field `mdnsService` under `bifrost.cluster.discovery`. |
+| `bifrost.cluster.discovery.serviceName` | `string` | Service name for discovery backends (required for consul/etcd/udp; used as default for mdns) |
+| `bifrost.cluster.discovery.type` | `string` | Discovery type (empty when not configured) |
+| `bifrost.cluster.discovery.udpBroadcastPort` | `integer` | UDP broadcast port (0 means not configured) |
+| `bifrost.cluster.enabled` | `boolean` | Configuration field `enabled` under `bifrost.cluster`. |
+| `bifrost.cluster.gossip` | `object` | Configuration field `gossip` under `bifrost.cluster`. |
+| `bifrost.cluster.gossip.config` | `object` | Configuration field `config` under `bifrost.cluster.gossip`. |
+| `bifrost.cluster.gossip.config.failureThreshold` | `integer` | Configuration field `failureThreshold` under `bifrost.cluster.gossip.config`. |
+| `bifrost.cluster.gossip.config.successThreshold` | `integer` | Configuration field `successThreshold` under `bifrost.cluster.gossip.config`. |
+| `bifrost.cluster.gossip.config.timeoutSeconds` | `integer` | Configuration field `timeoutSeconds` under `bifrost.cluster.gossip.config`. |
+| `bifrost.cluster.gossip.port` | `integer` | Configuration field `port` under `bifrost.cluster.gossip`. |
+| `bifrost.cluster.peers` | `array` | Configuration field `peers` under `bifrost.cluster`. |
+| `bifrost.cluster.peers[]` | `string` | Configuration field `peers` under `bifrost.cluster`. |
+| `bifrost.cluster.region` | `string` | Region for cluster deployment |
+| `bifrost.encryptionKey` | `string` | Encryption key for sensitive data. If not set, encryption is disabled and data is stored in plaintext. |
+| `bifrost.encryptionKeySecret` | `object` | Reference to an existing Kubernetes secret holding the encryption key. Takes precedence over `encryptionKey` when `name` is set. |
+| `bifrost.encryptionKeySecret.key` | `string` | Configuration field `key` under `bifrost.encryptionKeySecret`. |
+| `bifrost.encryptionKeySecret.name` | `string` | Configuration field `name` under `bifrost.encryptionKeySecret`. |
+| `bifrost.framework` | `object` | Main Bifrost runtime configuration rendered into config.json. Field `framework` within `bifrost`. |
+| `bifrost.framework.pricing` | `object` | Configuration field `pricing` under `bifrost.framework`. |
+| `bifrost.framework.pricing.pricingSyncInterval` | `integer` | Configuration field `pricingSyncInterval` under `bifrost.framework.pricing`. |
+| `bifrost.framework.pricing.pricingUrl` | `string` | Custom pricing URL (optional, can be empty) |
+| `bifrost.governance` | `object` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. |
+| `bifrost.governance.authConfig` | `object` | Current admin auth configuration block under governance. |
+| `bifrost.governance.budgets` | `array` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `budgets` within `bifrost.governance`. |
+| `bifrost.governance.budgets[]` | `object` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `budgets` within `bifrost.governance`. |
+| `bifrost.governance.budgets[].current_usage` | `number` | Configuration field `current_usage` under `bifrost.governance.budgets[]`. |
+| `bifrost.governance.budgets[].id` | `string` | Configuration field `id` under `bifrost.governance.budgets[]`. |
+| `bifrost.governance.budgets[].last_reset` | `string` | Configuration field `last_reset` under `bifrost.governance.budgets[]`. |
+| `bifrost.governance.budgets[].max_limit` | `number` | Configuration field `max_limit` under `bifrost.governance.budgets[]`. |
+| `bifrost.governance.budgets[].reset_duration` | `string` | Configuration field `reset_duration` under `bifrost.governance.budgets[]`. |
+| `bifrost.governance.customers` | `array` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `customers` within `bifrost.governance`. |
+| `bifrost.governance.customers[]` | `object` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `customers` within `bifrost.governance`. |
+| `bifrost.governance.customers[].budget_id` | `string` | Configuration field `budget_id` under `bifrost.governance.customers[]`. |
+| `bifrost.governance.customers[].id` | `string` | Configuration field `id` under `bifrost.governance.customers[]`. |
+| `bifrost.governance.customers[].name` | `string` | Configuration field `name` under `bifrost.governance.customers[]`. |
+| `bifrost.governance.customers[].rate_limit_id` | `string` | Configuration field `rate_limit_id` under `bifrost.governance.customers[]`. |
+| `bifrost.governance.modelConfigs` | `array` | Per-model rate limit and budget configurations |
+| `bifrost.governance.modelConfigs[]` | `object` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `modelConfigs` within `bifrost.governance`. |
+| `bifrost.governance.modelConfigs[].budget_id` | `string` | Configuration field `budget_id` under `bifrost.governance.modelConfigs[]`. |
+| `bifrost.governance.modelConfigs[].id` | `string` | Configuration field `id` under `bifrost.governance.modelConfigs[]`. |
+| `bifrost.governance.modelConfigs[].model_name` | `string` | Configuration field `model_name` under `bifrost.governance.modelConfigs[]`. |
+| `bifrost.governance.modelConfigs[].provider` | `string` | Configuration field `provider` under `bifrost.governance.modelConfigs[]`. |
+| `bifrost.governance.modelConfigs[].rate_limit_id` | `string` | Configuration field `rate_limit_id` under `bifrost.governance.modelConfigs[]`. |
+| `bifrost.governance.pricingOverrides` | `array` | Scoped pricing overrides applied at runtime by the model catalog |
+| `bifrost.governance.pricingOverrides[]` | `object` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `pricingOverrides` within `bifrost.governance`. |
+| `bifrost.governance.pricingOverrides[].config_hash` | `string` | Internal hash for change detection (auto-managed) |
+| `bifrost.governance.pricingOverrides[].id` | `string` | Unique pricing override ID |
+| `bifrost.governance.pricingOverrides[].match_type` | `string` | How the pattern is matched against model names |
+| `bifrost.governance.pricingOverrides[].name` | `string` | Human-readable name for this override |
+| `bifrost.governance.pricingOverrides[].pattern` | `string` | Model name pattern to match |
+| `bifrost.governance.pricingOverrides[].pricing_patch` | `string` | JSON-encoded pricing fields to override |
+| `bifrost.governance.pricingOverrides[].provider_id` | `string` | Provider name (required for provider* scopes; field key remains provider_id for compatibility) |
+| `bifrost.governance.pricingOverrides[].provider_key_name` | `string` | Provider key name alias. Resolved to internal provider key ID at config load time. |
+| `bifrost.governance.pricingOverrides[].request_types` | `array` | Request types this override applies to |
+| `bifrost.governance.pricingOverrides[].request_types[]` | `string` | Configuration field `request_types` under `bifrost.governance.pricingOverrides[]`. |
+| `bifrost.governance.pricingOverrides[].scope_kind` | `string` | Scope level for this override |
+| `bifrost.governance.pricingOverrides[].virtual_key_id` | `string` | Virtual key ID (required for virtual_key* scopes) |
+| `bifrost.governance.providers` | `array` | Provider-level governance configurations |
+| `bifrost.governance.providers[]` | `object` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `providers` within `bifrost.governance`. |
+| `bifrost.governance.providers[].budget_id` | `string` | Configuration field `budget_id` under `bifrost.governance.providers[]`. |
+| `bifrost.governance.providers[].name` | `string` | Provider name |
+| `bifrost.governance.providers[].rate_limit_id` | `string` | Configuration field `rate_limit_id` under `bifrost.governance.providers[]`. |
+| `bifrost.governance.providers[].send_back_raw_request` | `boolean` | Configuration field `send_back_raw_request` under `bifrost.governance.providers[]`. |
+| `bifrost.governance.providers[].send_back_raw_response` | `boolean` | Configuration field `send_back_raw_response` under `bifrost.governance.providers[]`. |
+| `bifrost.governance.providers[].store_raw_request_response` | `boolean` | Configuration field `store_raw_request_response` under `bifrost.governance.providers[]`. |
+| `bifrost.governance.rateLimits` | `array` | Rate limit configurations |
+| `bifrost.governance.rateLimits[]` | `object` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `rateLimits` within `bifrost.governance`. |
+| `bifrost.governance.rateLimits[].id` | `string` | Rate limit ID |
+| `bifrost.governance.rateLimits[].request_current_usage` | `integer` | Current request usage |
+| `bifrost.governance.rateLimits[].request_last_reset` | `string` | Last time request counter was reset |
+| `bifrost.governance.rateLimits[].request_max_limit` | `integer` | Maximum requests allowed |
+| `bifrost.governance.rateLimits[].request_reset_duration` | `string` | Request reset duration (e.g., '30s', '5m', '1h', '1d', '1w', '1M', '1Y') |
+| `bifrost.governance.rateLimits[].token_current_usage` | `integer` | Current token usage |
+| `bifrost.governance.rateLimits[].token_last_reset` | `string` | Last time token counter was reset |
+| `bifrost.governance.rateLimits[].token_max_limit` | `integer` | Maximum tokens allowed |
+| `bifrost.governance.rateLimits[].token_reset_duration` | `string` | Token reset duration (e.g., '30s', '5m', '1h', '1d', '1w', '1M', '1Y') |
+| `bifrost.governance.routingRules` | `array` | Routing rules for dynamic provider/model selection based on CEL expressions |
+| `bifrost.governance.routingRules[]` | `object` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `routingRules` within `bifrost.governance`. |
+| `bifrost.governance.routingRules[].cel_expression` | `string` | Configuration field `cel_expression` under `bifrost.governance.routingRules[]`. |
+| `bifrost.governance.routingRules[].description` | `string` | Configuration field `description` under `bifrost.governance.routingRules[]`. |
+| `bifrost.governance.routingRules[].enabled` | `boolean` | Configuration field `enabled` under `bifrost.governance.routingRules[]`. |
+| `bifrost.governance.routingRules[].fallbacks` | `array` | Configuration field `fallbacks` under `bifrost.governance.routingRules[]`. |
+| `bifrost.governance.routingRules[].fallbacks[]` | `string` | Configuration field `fallbacks` under `bifrost.governance.routingRules[]`. |
+| `bifrost.governance.routingRules[].id` | `string` | Configuration field `id` under `bifrost.governance.routingRules[]`. |
+| `bifrost.governance.routingRules[].name` | `string` | Configuration field `name` under `bifrost.governance.routingRules[]`. |
+| `bifrost.governance.routingRules[].priority` | `integer` | Configuration field `priority` under `bifrost.governance.routingRules[]`. |
+| `bifrost.governance.routingRules[].query` | `object` | Visual rule builder state for the management UI (react-querybuilder). Omitted unless exported from the dashboard. Not evaluated at routing runtime (cel_expression is). When present, must include combinator and rules[]. |
+| `bifrost.governance.routingRules[].scope` | `string` | Configuration field `scope` under `bifrost.governance.routingRules[]`. |
+| `bifrost.governance.routingRules[].scope_id` | `string/null` | Configuration field `scope_id` under `bifrost.governance.routingRules[]`. |
+| `bifrost.governance.routingRules[].targets` | `array` | Weighted routing targets. Weights must sum to 1. |
+| `bifrost.governance.routingRules[].targets[]` | `object` | Configuration field `targets` under `bifrost.governance.routingRules[]`. |
+| `bifrost.governance.routingRules[].targets[].model` | `string` | Target model name |
+| `bifrost.governance.routingRules[].targets[].provider` | `string` | Target provider name |
+| `bifrost.governance.routingRules[].targets[].provider_key_name` | `string` | Optional provider key name. Resolved to internal key_id at config load time. |
+| `bifrost.governance.routingRules[].targets[].weight` | `number` | Probability weight for this target (must be > 0, all weights must sum to 1) |
+| `bifrost.governance.teams` | `array` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `teams` within `bifrost.governance`. |
+| `bifrost.governance.teams[]` | `object` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `teams` within `bifrost.governance`. |
+| `bifrost.governance.teams[].budget_id` | `string` | Configuration field `budget_id` under `bifrost.governance.teams[]`. |
+| `bifrost.governance.teams[].claims` | `object` | Configuration field `claims` under `bifrost.governance.teams[]`. |
+| `bifrost.governance.teams[].config` | `object` | Configuration field `config` under `bifrost.governance.teams[]`. |
+| `bifrost.governance.teams[].customer_id` | `string` | Configuration field `customer_id` under `bifrost.governance.teams[]`. |
+| `bifrost.governance.teams[].id` | `string` | Configuration field `id` under `bifrost.governance.teams[]`. |
+| `bifrost.governance.teams[].name` | `string` | Configuration field `name` under `bifrost.governance.teams[]`. |
+| `bifrost.governance.teams[].profile` | `object` | Configuration field `profile` under `bifrost.governance.teams[]`. |
+| `bifrost.governance.teams[].rate_limit_id` | `string` | Configuration field `rate_limit_id` under `bifrost.governance.teams[]`. |
+| `bifrost.governance.virtualKeys` | `array` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `virtualKeys` within `bifrost.governance`. |
+| `bifrost.governance.virtualKeys[]` | `object` | Governance seed data: budgets, limits, teams, virtual keys, and routing rules. Field `virtualKeys` within `bifrost.governance`. |
+| `bifrost.governance.virtualKeys[].calendar_aligned` | `boolean` | Configuration field `calendar_aligned` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.governance.virtualKeys[].customer_id` | `string` | Configuration field `customer_id` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.governance.virtualKeys[].description` | `string` | Configuration field `description` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.governance.virtualKeys[].id` | `string` | Configuration field `id` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.governance.virtualKeys[].is_active` | `boolean` | Configuration field `is_active` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.governance.virtualKeys[].mcp_configs` | `array` | Configuration field `mcp_configs` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.governance.virtualKeys[].mcp_configs[]` | `object` | Configuration field `mcp_configs` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.governance.virtualKeys[].mcp_configs[].mcp_client_id` | `integer` | Configuration field `mcp_client_id` under `bifrost.governance.virtualKeys[].mcp_configs[]`. |
+| `bifrost.governance.virtualKeys[].mcp_configs[].mcp_client_name` | `string` | Configuration field `mcp_client_name` under `bifrost.governance.virtualKeys[].mcp_configs[]`. |
+| `bifrost.governance.virtualKeys[].mcp_configs[].tools_to_execute` | `array` | Configuration field `tools_to_execute` under `bifrost.governance.virtualKeys[].mcp_configs[]`. |
+| `bifrost.governance.virtualKeys[].mcp_configs[].tools_to_execute[]` | `string` | Configuration field `tools_to_execute` under `bifrost.governance.virtualKeys[].mcp_configs[]`. |
+| `bifrost.governance.virtualKeys[].name` | `string` | Configuration field `name` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.governance.virtualKeys[].provider_configs` | `array` | Configuration field `provider_configs` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.governance.virtualKeys[].provider_configs[]` | `object` | Configuration field `provider_configs` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.governance.virtualKeys[].rate_limit_id` | `string` | Configuration field `rate_limit_id` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.governance.virtualKeys[].team_id` | `string` | Configuration field `team_id` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.governance.virtualKeys[].value` | `string` | Configuration field `value` under `bifrost.governance.virtualKeys[]`. |
+| `bifrost.guardrails` | `object` | Main Bifrost runtime configuration rendered into config.json. Field `guardrails` within `bifrost`. |
+| `bifrost.guardrails.providers` | `array` | Configuration field `providers` under `bifrost.guardrails`. |
+| `bifrost.guardrails.providers[]` | `object` | Configuration field `providers` under `bifrost.guardrails`. |
+| `bifrost.guardrails.providers[].config` | `object` | Configuration field `config` under `bifrost.guardrails.providers[]`. |
+| `bifrost.guardrails.providers[].enabled` | `boolean` | Configuration field `enabled` under `bifrost.guardrails.providers[]`. |
+| `bifrost.guardrails.providers[].id` | `integer` | Configuration field `id` under `bifrost.guardrails.providers[]`. |
+| `bifrost.guardrails.providers[].policy_name` | `string` | Configuration field `policy_name` under `bifrost.guardrails.providers[]`. |
+| `bifrost.guardrails.providers[].provider_name` | `string` | Configuration field `provider_name` under `bifrost.guardrails.providers[]`. |
+| `bifrost.guardrails.providers[].timeout` | `integer` | Timeout in milliseconds for provider execution |
+| `bifrost.guardrails.rules` | `array` | Configuration field `rules` under `bifrost.guardrails`. |
+| `bifrost.guardrails.rules[]` | `object` | Configuration field `rules` under `bifrost.guardrails`. |
+| `bifrost.guardrails.rules[].apply_to` | `string` | Configuration field `apply_to` under `bifrost.guardrails.rules[]`. |
+| `bifrost.guardrails.rules[].cel_expression` | `string` | Configuration field `cel_expression` under `bifrost.guardrails.rules[]`. |
+| `bifrost.guardrails.rules[].description` | `string` | Configuration field `description` under `bifrost.guardrails.rules[]`. |
+| `bifrost.guardrails.rules[].enabled` | `boolean` | Configuration field `enabled` under `bifrost.guardrails.rules[]`. |
+| `bifrost.guardrails.rules[].id` | `integer` | Configuration field `id` under `bifrost.guardrails.rules[]`. |
+| `bifrost.guardrails.rules[].name` | `string` | Configuration field `name` under `bifrost.guardrails.rules[]`. |
+| `bifrost.guardrails.rules[].provider_config_ids` | `array` | Configuration field `provider_config_ids` under `bifrost.guardrails.rules[]`. |
+| `bifrost.guardrails.rules[].provider_config_ids[]` | `integer` | Configuration field `provider_config_ids` under `bifrost.guardrails.rules[]`. |
+| `bifrost.guardrails.rules[].sampling_rate` | `integer` | Configuration field `sampling_rate` under `bifrost.guardrails.rules[]`. |
+| `bifrost.guardrails.rules[].timeout` | `integer` | Configuration field `timeout` under `bifrost.guardrails.rules[]`. |
+| `bifrost.host` | `string` | Main Bifrost runtime configuration rendered into config.json. Field `host` within `bifrost`. |
+| `bifrost.largePayloadOptimization` | `object` | Large payload streaming optimization configuration |
+| `bifrost.largePayloadOptimization.enabled` | `boolean` | Configuration field `enabled` under `bifrost.largePayloadOptimization`. |
+| `bifrost.largePayloadOptimization.maxPayloadBytes` | `integer` | Configuration field `maxPayloadBytes` under `bifrost.largePayloadOptimization`. |
+| `bifrost.largePayloadOptimization.prefetchSizeBytes` | `integer` | Configuration field `prefetchSizeBytes` under `bifrost.largePayloadOptimization`. |
+| `bifrost.largePayloadOptimization.requestThresholdBytes` | `integer` | Configuration field `requestThresholdBytes` under `bifrost.largePayloadOptimization`. |
+| `bifrost.largePayloadOptimization.responseThresholdBytes` | `integer` | Configuration field `responseThresholdBytes` under `bifrost.largePayloadOptimization`. |
+| `bifrost.largePayloadOptimization.truncatedLogBytes` | `integer` | Configuration field `truncatedLogBytes` under `bifrost.largePayloadOptimization`. |
+| `bifrost.loadBalancer` | `object` | Main Bifrost runtime configuration rendered into config.json. Field `loadBalancer` within `bifrost`. |
+| `bifrost.loadBalancer.bootstrap` | `object` | Configuration field `bootstrap` under `bifrost.loadBalancer`. |
+| `bifrost.loadBalancer.enabled` | `boolean` | Configuration field `enabled` under `bifrost.loadBalancer`. |
+| `bifrost.loadBalancer.trackerConfig` | `object` | Configuration field `trackerConfig` under `bifrost.loadBalancer`. |
+| `bifrost.logLevel` | `string` | Main Bifrost runtime configuration rendered into config.json. Field `logLevel` within `bifrost`. |
+| `bifrost.logStyle` | `string` | Main Bifrost runtime configuration rendered into config.json. Field `logStyle` within `bifrost`. |
+| `bifrost.mcp` | `object` | MCP client and tool manager configuration. |
+| `bifrost.mcp.clientConfigs` | `array` | MCP client and tool manager configuration. Field `clientConfigs` within `bifrost.mcp`. |
+| `bifrost.mcp.clientConfigs[]` | `object` | MCP client and tool manager configuration. Field `clientConfigs` within `bifrost.mcp`. |
+| `bifrost.mcp.enabled` | `boolean` | MCP client and tool manager configuration. Field `enabled` within `bifrost.mcp`. |
+| `bifrost.mcp.toolManagerConfig` | `object` | MCP client and tool manager configuration. Field `toolManagerConfig` within `bifrost.mcp`. |
+| `bifrost.mcp.toolManagerConfig.codeModeBindingLevel` | `string` | How tools are exposed in VFS for code execution |
+| `bifrost.mcp.toolManagerConfig.disableAutoToolInject` | `boolean` | When true, MCP tools are not automatically injected into requests. Tools are only included when explicitly specified. |
+| `bifrost.mcp.toolManagerConfig.maxAgentDepth` | `integer` | Configuration field `maxAgentDepth` under `bifrost.mcp.toolManagerConfig`. |
+| `bifrost.mcp.toolManagerConfig.toolExecutionTimeout` | `integer` | Configuration field `toolExecutionTimeout` under `bifrost.mcp.toolManagerConfig`. |
+| `bifrost.mcp.toolSyncInterval` | `string` | Global default interval for syncing tools from MCP servers (Go duration string, e.g. '10m', '1h', '0s' to use runtime default) |
+| `bifrost.plugins` | `object` | Built-in and custom plugin configuration. |
+| `bifrost.plugins.custom` | `array` | Built-in and custom plugin configuration. Field `custom` within `bifrost.plugins`. |
+| `bifrost.plugins.custom[]` | `object` | Built-in and custom plugin configuration. Field `custom` within `bifrost.plugins`. |
+| `bifrost.plugins.custom[].config` | `object` | Configuration field `config` under `bifrost.plugins.custom[]`. |
+| `bifrost.plugins.custom[].enabled` | `boolean` | Configuration field `enabled` under `bifrost.plugins.custom[]`. |
+| `bifrost.plugins.custom[].name` | `string` | Configuration field `name` under `bifrost.plugins.custom[]`. |
+| `bifrost.plugins.custom[].order` | `integer` | Position within placement group. Lower = earlier execution |
+| `bifrost.plugins.custom[].path` | `string` | Configuration field `path` under `bifrost.plugins.custom[]`. |
+| `bifrost.plugins.custom[].placement` | `string` | Plugin execution placement relative to built-in plugins |
+| `bifrost.plugins.custom[].version` | `integer` | Configuration field `version` under `bifrost.plugins.custom[]`. |
+| `bifrost.plugins.datadog` | `object` | Built-in and custom plugin configuration. Field `datadog` within `bifrost.plugins`. |
+| `bifrost.plugins.datadog.config` | `object` | Configuration field `config` under `bifrost.plugins.datadog`. |
+| `bifrost.plugins.datadog.config.agent_addr` | `string` | Configuration field `agent_addr` under `bifrost.plugins.datadog.config`. |
+| `bifrost.plugins.datadog.config.custom_tags` | `object` | Configuration field `custom_tags` under `bifrost.plugins.datadog.config`. |
+| `bifrost.plugins.datadog.config.enable_traces` | `boolean` | Configuration field `enable_traces` under `bifrost.plugins.datadog.config`. |
+| `bifrost.plugins.datadog.config.env` | `string` | Configuration field `env` under `bifrost.plugins.datadog.config`. |
+| `bifrost.plugins.datadog.config.service_name` | `string` | Configuration field `service_name` under `bifrost.plugins.datadog.config`. |
+| `bifrost.plugins.datadog.config.version` | `string` | Configuration field `version` under `bifrost.plugins.datadog.config`. |
+| `bifrost.plugins.datadog.enabled` | `boolean` | Configuration field `enabled` under `bifrost.plugins.datadog`. |
+| `bifrost.plugins.governance` | `object` | Built-in and custom plugin configuration. Field `governance` within `bifrost.plugins`. |
+| `bifrost.plugins.governance.config` | `object` | Configuration field `config` under `bifrost.plugins.governance`. |
+| `bifrost.plugins.governance.config.is_enterprise` | `boolean` | Enable enterprise mode features |
+| `bifrost.plugins.governance.config.is_vk_mandatory` | `boolean` | Configuration field `is_vk_mandatory` under `bifrost.plugins.governance.config`. |
+| `bifrost.plugins.governance.config.required_headers` | `array` | Headers that must be present in requests |
+| `bifrost.plugins.governance.config.required_headers[]` | `string` | Configuration field `required_headers` under `bifrost.plugins.governance.config`. |
+| `bifrost.plugins.governance.enabled` | `boolean` | Configuration field `enabled` under `bifrost.plugins.governance`. |
+| `bifrost.plugins.logging` | `object` | Built-in and custom plugin configuration. Field `logging` within `bifrost.plugins`. |
+| `bifrost.plugins.maxim` | `object` | Built-in and custom plugin configuration. Field `maxim` within `bifrost.plugins`. |
+| `bifrost.plugins.maxim.config` | `object` | Configuration field `config` under `bifrost.plugins.maxim`. |
+| `bifrost.plugins.maxim.config.api_key` | `string` | Configuration field `api_key` under `bifrost.plugins.maxim.config`. |
+| `bifrost.plugins.maxim.config.log_repo_id` | `string` | Configuration field `log_repo_id` under `bifrost.plugins.maxim.config`. |
+| `bifrost.plugins.maxim.enabled` | `boolean` | Configuration field `enabled` under `bifrost.plugins.maxim`. |
+| `bifrost.plugins.maxim.secretRef` | `object` | Configuration field `secretRef` under `bifrost.plugins.maxim`. |
+| `bifrost.plugins.maxim.secretRef.key` | `string` | Configuration field `key` under `bifrost.plugins.maxim.secretRef`. |
+| `bifrost.plugins.maxim.secretRef.name` | `string` | Configuration field `name` under `bifrost.plugins.maxim.secretRef`. |
+| `bifrost.plugins.otel` | `object` | Built-in and custom plugin configuration. Field `otel` within `bifrost.plugins`. |
+| `bifrost.plugins.otel.config` | `object` | Configuration field `config` under `bifrost.plugins.otel`. |
+| `bifrost.plugins.otel.config.collector_url` | `string` | URL of the OpenTelemetry collector |
+| `bifrost.plugins.otel.config.headers` | `object` | Custom headers for the collector (supports env.VAR_NAME prefix) |
+| `bifrost.plugins.otel.config.insecure` | `boolean` | Skip TLS verification (ignored if tls_ca_cert is set) |
+| `bifrost.plugins.otel.config.metrics_enabled` | `boolean` | Enable push-based metrics export via OTLP. Recommended for multi-node cluster deployments. |
+| `bifrost.plugins.otel.config.metrics_endpoint` | `string` | OTLP metrics endpoint URL (e.g., http://otel-collector:4318/v1/metrics for HTTP or otel-collector:4317 for gRPC) |
+| `bifrost.plugins.otel.config.metrics_push_interval` | `integer` | Metrics push interval in seconds |
+| `bifrost.plugins.otel.config.protocol` | `string` | Protocol to use for the OTEL collector |
+| `bifrost.plugins.otel.config.service_name` | `string` | Service name to be used for tracing |
+| `bifrost.plugins.otel.config.tls_ca_cert` | `string` | Path to TLS CA certificate file |
+| `bifrost.plugins.otel.config.trace_type` | `string` | Type of trace to use for the OTEL collector |
+| `bifrost.plugins.otel.enabled` | `boolean` | Configuration field `enabled` under `bifrost.plugins.otel`. |
+| `bifrost.plugins.semanticCache` | `object` | Built-in and custom plugin configuration. Field `semanticCache` within `bifrost.plugins`. |
+| `bifrost.plugins.semanticCache.config` | `object` | Configuration field `config` under `bifrost.plugins.semanticCache`. |
+| `bifrost.plugins.semanticCache.config.cache_by_model` | `boolean` | Configuration field `cache_by_model` under `bifrost.plugins.semanticCache.config`. |
+| `bifrost.plugins.semanticCache.config.cache_by_provider` | `boolean` | Configuration field `cache_by_provider` under `bifrost.plugins.semanticCache.config`. |
+| `bifrost.plugins.semanticCache.config.cleanup_on_shutdown` | `boolean` | Configuration field `cleanup_on_shutdown` under `bifrost.plugins.semanticCache.config`. |
+| `bifrost.plugins.semanticCache.config.conversation_history_threshold` | `integer` | Configuration field `conversation_history_threshold` under `bifrost.plugins.semanticCache.config`. |
+| `bifrost.plugins.semanticCache.config.default_cache_key` | `string` | Default cache key for semantic cache lookups |
+| `bifrost.plugins.semanticCache.config.dimension` | `integer` | Configuration field `dimension` under `bifrost.plugins.semanticCache.config`. |
+| `bifrost.plugins.semanticCache.config.embedding_model` | `string` | Configuration field `embedding_model` under `bifrost.plugins.semanticCache.config`. |
+| `bifrost.plugins.semanticCache.config.exclude_system_prompt` | `boolean` | Configuration field `exclude_system_prompt` under `bifrost.plugins.semanticCache.config`. |
+| `bifrost.plugins.semanticCache.config.provider` | `string` | Configuration field `provider` under `bifrost.plugins.semanticCache.config`. |
+| `bifrost.plugins.semanticCache.config.threshold` | `number` | Configuration field `threshold` under `bifrost.plugins.semanticCache.config`. |
+| `bifrost.plugins.semanticCache.config.ttl` | `string | integer` | Time-to-live for cached responses (supports duration strings like '5m', '1h' or seconds as number, default: 5min) |
+| `bifrost.plugins.semanticCache.config.vector_store_namespace` | `string` | Configuration field `vector_store_namespace` under `bifrost.plugins.semanticCache.config`. |
+| `bifrost.plugins.semanticCache.enabled` | `boolean` | Configuration field `enabled` under `bifrost.plugins.semanticCache`. |
+| `bifrost.plugins.telemetry` | `object` | Built-in and custom plugin configuration. Field `telemetry` within `bifrost.plugins`. |
+| `bifrost.plugins.telemetry.config` | `object` | Configuration field `config` under `bifrost.plugins.telemetry`. |
+| `bifrost.plugins.telemetry.config.custom_labels` | `array` | Custom labels to add to all metrics |
+| `bifrost.plugins.telemetry.config.custom_labels[]` | `string` | Configuration field `custom_labels` under `bifrost.plugins.telemetry.config`. |
+| `bifrost.plugins.telemetry.config.push_gateway` | `object` | Configuration for pushing metrics to a Prometheus Push Gateway for multi-node cluster deployments |
+| `bifrost.plugins.telemetry.config.push_gateway.basic_auth` | `object` | Basic authentication credentials for the Push Gateway |
+| `bifrost.plugins.telemetry.config.push_gateway.basic_auth.password` | `string` | Password for basic authentication |
+| `bifrost.plugins.telemetry.config.push_gateway.basic_auth.username` | `string` | Username for basic authentication |
+| `bifrost.plugins.telemetry.config.push_gateway.enabled` | `boolean` | Whether to enable pushing metrics to the Push Gateway |
+| `bifrost.plugins.telemetry.config.push_gateway.instance_id` | `string` | Instance identifier for grouping metrics. If not set, hostname is used automatically. |
+| `bifrost.plugins.telemetry.config.push_gateway.job_name` | `string` | Job label for pushed metrics |
+| `bifrost.plugins.telemetry.config.push_gateway.push_gateway_url` | `string` | URL of the Prometheus Push Gateway (e.g., http://pushgateway:9091) |
+| `bifrost.plugins.telemetry.config.push_gateway.push_interval` | `integer` | How often to push metrics in seconds |
+| `bifrost.plugins.telemetry.enabled` | `boolean` | Configuration field `enabled` under `bifrost.plugins.telemetry`. |
+| `bifrost.port` | `integer` | Main Bifrost runtime configuration rendered into config.json. Field `port` within `bifrost`. |
+| `bifrost.providerSecrets` | `object` | Secret-to-env mappings used for provider credentials. |
+| `bifrost.providers` | `object` | AI provider configurations |
+| `bifrost.scim` | `object` | Main Bifrost runtime configuration rendered into config.json. Field `scim` within `bifrost`. |
+| `bifrost.scim.config` | `object` | Configuration field `config` under `bifrost.scim`. |
+| `bifrost.scim.enabled` | `boolean` | Configuration field `enabled` under `bifrost.scim`. |
+| `bifrost.scim.provider` | `string` | SCIM/SSO provider type (empty when not configured) |
+| `bifrost.websocket` | `object` | Optional tuning for the WebSocket gateway (Responses API WebSocket Mode, Realtime API) |
+| `bifrost.websocket.maxConnectionsPerUser` | `integer` | Maximum concurrent WebSocket connections per user |
+| `bifrost.websocket.pool` | `object` | Upstream WebSocket connection pool configuration |
+| `bifrost.websocket.pool.idleTimeoutSeconds` | `integer` | Seconds before an idle connection is evicted |
+| `bifrost.websocket.pool.maxConnectionLifetimeSeconds` | `integer` | Maximum lifetime of a connection in seconds |
+| `bifrost.websocket.pool.maxIdlePerKey` | `integer` | Maximum idle connections per provider/key combination |
+| `bifrost.websocket.pool.maxTotalConnections` | `integer` | Maximum total idle connections across all providers |
+| `bifrost.websocket.transcriptBufferSize` | `integer` | Number of transcript entries to buffer for Realtime API mid-session fallback |
+
+## deploymentAnnotations
+
+| Field | Type | Meaning |
+|---|---|---|
+| `deploymentAnnotations` | `object` | Configuration field `deploymentAnnotations` under `root values`. |
+
+## deploymentLabels
+
+| Field | Type | Meaning |
+|---|---|---|
+| `deploymentLabels` | `object` | Configuration field `deploymentLabels` under `root values`. |
+
+## env
+
+| Field | Type | Meaning |
+|---|---|---|
+| `env` | `array` | Explicit environment variables injected into the Bifrost container. |
+| `env[]` | `object` | Configuration field `env` under `root values`. |
+| `env[].name` | `string` | Configuration field `name` under `env[]`. |
+| `env[].value` | `string` | Configuration field `value` under `env[]`. |
+| `env[].valueFrom` | `object` | Configuration field `valueFrom` under `env[]`. |
+
+## envFrom
+
+| Field | Type | Meaning |
+|---|---|---|
+| `envFrom` | `array` | Bulk environment variable imports from Secret/ConfigMap references. |
+| `envFrom[]` | `object` | Configuration field `envFrom` under `root values`. |
+
+## extraEnv
+
+| Field | Type | Meaning |
+|---|---|---|
+| `extraEnv` | `yaml-only` | Map-style environment variables appended to container env. |
+
+## fullnameOverride
+
+| Field | Type | Meaning |
+|---|---|---|
+| `fullnameOverride` | `string` | Configuration field `fullnameOverride` under `root values`. |
+
+## image
+
+| Field | Type | Meaning |
+|---|---|---|
+| `image` | `object` | Configuration field `image` under `root values`. |
+| `image.pullPolicy` | `string` | Image pull policy |
+| `image.repository` | `string` | Container image repository |
+| `image.tag` | `string` | Image tag (required - validated at template render time) |
+
+## imagePullSecrets
+
+| Field | Type | Meaning |
+|---|---|---|
+| `imagePullSecrets` | `array` | Private registry credentials used when pulling container images. |
+| `imagePullSecrets[]` | `object` | Configuration field `imagePullSecrets` under `root values`. |
+
+## ingress
+
+| Field | Type | Meaning |
+|---|---|---|
+| `ingress` | `object` | Configuration field `ingress` under `root values`. |
+| `ingress.annotations` | `object` | Configuration field `annotations` under `ingress`. |
+| `ingress.className` | `string` | Ingress controller class that should handle this ingress. |
+| `ingress.enabled` | `boolean` | Whether to create and manage an Ingress resource. |
+| `ingress.hosts` | `array` | Configuration field `hosts` under `ingress`. |
+| `ingress.hosts[]` | `object` | Configuration field `hosts` under `ingress`. |
+| `ingress.hosts[].host` | `string` | Configuration field `host` under `ingress.hosts[]`. |
+| `ingress.hosts[].paths` | `array` | Configuration field `paths` under `ingress.hosts[]`. |
+| `ingress.hosts[].paths[]` | `object` | Configuration field `paths` under `ingress.hosts[]`. |
+| `ingress.hosts[].paths[].path` | `string` | Configuration field `path` under `ingress.hosts[].paths[]`. |
+| `ingress.hosts[].paths[].pathType` | `string` | Configuration field `pathType` under `ingress.hosts[].paths[]`. |
+| `ingress.tls` | `array` | Configuration field `tls` under `ingress`. |
+
+## initContainers
+
+| Field | Type | Meaning |
+|---|---|---|
+| `initContainers` | `array` | Init containers that run before the main Bifrost container starts. |
+| `initContainers[]` | `object` | Configuration field `initContainers` under `root values`. |
+
+## lifecycle
+
+| Field | Type | Meaning |
+|---|---|---|
+| `lifecycle` | `yaml-only` | Lifecycle hooks executed by Kubernetes during pod start/stop events. |
+
+## livenessProbe
+
+| Field | Type | Meaning |
+|---|---|---|
+| `livenessProbe` | `object` | Configuration field `livenessProbe` under `root values`. |
+
+## nameOverride
+
+| Field | Type | Meaning |
+|---|---|---|
+| `nameOverride` | `string` | Configuration field `nameOverride` under `root values`. |
+
+## nodeSelector
+
+| Field | Type | Meaning |
+|---|---|---|
+| `nodeSelector` | `object` | Hard scheduling constraints based on node labels. |
+
+## podAnnotations
+
+| Field | Type | Meaning |
+|---|---|---|
+| `podAnnotations` | `object` | Configuration field `podAnnotations` under `root values`. |
+
+## podLabels
+
+| Field | Type | Meaning |
+|---|---|---|
+| `podLabels` | `object` | Configuration field `podLabels` under `root values`. |
+
+## podSecurityContext
+
+| Field | Type | Meaning |
+|---|---|---|
+| `podSecurityContext` | `object` | Pod-level security settings (UID/GID/non-root behavior). |
+
+## postgresql
+
+| Field | Type | Meaning |
+|---|---|---|
+| `postgresql` | `object` | Configuration field `postgresql` under `root values`. |
+| `postgresql.auth` | `object` | Configuration field `auth` under `postgresql`. |
+| `postgresql.auth.database` | `string` | Configuration field `database` under `postgresql.auth`. |
+| `postgresql.auth.password` | `string` | Configuration field `password` under `postgresql.auth`. |
+| `postgresql.auth.username` | `string` | Configuration field `username` under `postgresql.auth`. |
+| `postgresql.enabled` | `boolean` | Whether to deploy the bundled PostgreSQL subchart. |
+| `postgresql.external` | `object` | Configuration field `external` under `postgresql`. |
+| `postgresql.external.database` | `string` | Configuration field `database` under `postgresql.external`. |
+| `postgresql.external.enabled` | `boolean` | Configuration field `enabled` under `postgresql.external`. |
+| `postgresql.external.existingSecret` | `string` | Configuration field `existingSecret` under `postgresql.external`. |
+| `postgresql.external.host` | `string` | Configuration field `host` under `postgresql.external`. |
+| `postgresql.external.password` | `string` | Configuration field `password` under `postgresql.external`. |
+| `postgresql.external.passwordKey` | `string` | Configuration field `passwordKey` under `postgresql.external`. |
+| `postgresql.external.port` | `integer` | Configuration field `port` under `postgresql.external`. |
+| `postgresql.external.sslMode` | `string` | Configuration field `sslMode` under `postgresql.external`. |
+| `postgresql.external.user` | `string` | Configuration field `user` under `postgresql.external`. |
+| `postgresql.image` | `object` | Configuration field `image` under `postgresql`. |
+| `postgresql.image.pullPolicy` | `string` | Configuration field `pullPolicy` under `postgresql.image`. |
+| `postgresql.image.repository` | `string` | Configuration field `repository` under `postgresql.image`. |
+| `postgresql.image.tag` | `string` | Configuration field `tag` under `postgresql.image`. |
+| `postgresql.metrics` | `object` | Configuration field `metrics` under `postgresql`. |
+| `postgresql.metrics.enabled` | `boolean` | Configuration field `enabled` under `postgresql.metrics`. |
+| `postgresql.primary` | `object` | Configuration field `primary` under `postgresql`. |
+| `postgresql.primary.persistence` | `object` | Configuration field `persistence` under `postgresql.primary`. |
+| `postgresql.primary.persistence.enabled` | `boolean` | Configuration field `enabled` under `postgresql.primary.persistence`. |
+| `postgresql.primary.persistence.size` | `string` | Configuration field `size` under `postgresql.primary.persistence`. |
+| `postgresql.primary.resources` | `object` | Configuration field `resources` under `postgresql.primary`. |
+
+## readinessProbe
+
+| Field | Type | Meaning |
+|---|---|---|
+| `readinessProbe` | `object` | Configuration field `readinessProbe` under `root values`. |
+
+## replicaCount
+
+| Field | Type | Meaning |
+|---|---|---|
+| `replicaCount` | `integer` | Number of Bifrost replicas |
+
+## resources
+
+| Field | Type | Meaning |
+|---|---|---|
+| `resources` | `object` | Configuration field `resources` under `root values`. |
+| `resources.limits` | `object` | Configuration field `limits` under `resources`. |
+| `resources.requests` | `object` | Configuration field `requests` under `resources`. |
+
+## securityContext
+
+| Field | Type | Meaning |
+|---|---|---|
+| `securityContext` | `object` | Container-level security and Linux capability settings. |
+
+## service
+
+| Field | Type | Meaning |
+|---|---|---|
+| `service` | `object` | Configuration field `service` under `root values`. |
+| `service.annotations` | `object` | Configuration field `annotations` under `service`. |
+| `service.port` | `integer` | Port exposed by the Bifrost Service. |
+| `service.type` | `string` | Kubernetes Service exposure mode for Bifrost traffic. |
+
+## serviceAccount
+
+| Field | Type | Meaning |
+|---|---|---|
+| `serviceAccount` | `object` | Service account creation and identity settings for Bifrost pods. |
+| `serviceAccount.annotations` | `object` | Service account creation and identity settings for Bifrost pods. Field `annotations` within `serviceAccount`. |
+| `serviceAccount.automount` | `boolean` | Service account creation and identity settings for Bifrost pods. Field `automount` within `serviceAccount`. |
+| `serviceAccount.create` | `boolean` | Service account creation and identity settings for Bifrost pods. Field `create` within `serviceAccount`. |
+| `serviceAccount.name` | `string` | Service account creation and identity settings for Bifrost pods. Field `name` within `serviceAccount`. |
+
+## storage
+
+| Field | Type | Meaning |
+|---|---|---|
+| `storage` | `object` | Configuration field `storage` under `root values`. |
+| `storage.configStore` | `object` | Configuration field `configStore` under `storage`. |
+| `storage.configStore.enabled` | `boolean` | Configuration field `enabled` under `storage.configStore`. |
+| `storage.configStore.maxIdleConns` | `integer` | Configuration field `maxIdleConns` under `storage.configStore`. |
+| `storage.configStore.maxOpenConns` | `integer` | Configuration field `maxOpenConns` under `storage.configStore`. |
+| `storage.configStore.type` | `string` | Configuration field `type` under `storage.configStore`. |
+| `storage.logsStore` | `object` | Configuration field `logsStore` under `storage`. |
+| `storage.logsStore.enabled` | `boolean` | Configuration field `enabled` under `storage.logsStore`. |
+| `storage.logsStore.maxIdleConns` | `integer` | Configuration field `maxIdleConns` under `storage.logsStore`. |
+| `storage.logsStore.maxOpenConns` | `integer` | Configuration field `maxOpenConns` under `storage.logsStore`. |
+| `storage.logsStore.objectStorage` | `object` | Configuration field `objectStorage` under `storage.logsStore`. |
+| `storage.logsStore.objectStorage.accessKeyId` | `string` | Configuration field `accessKeyId` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.accessKeyIdKey` | `string` | Configuration field `accessKeyIdKey` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.bucket` | `string` | Configuration field `bucket` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.compress` | `boolean` | Configuration field `compress` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.credentialsJson` | `string` | Configuration field `credentialsJson` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.credentialsJsonKey` | `string` | Configuration field `credentialsJsonKey` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.enabled` | `boolean` | Configuration field `enabled` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.endpoint` | `string` | Configuration field `endpoint` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.existingSecret` | `string` | Configuration field `existingSecret` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.forcePathStyle` | `boolean` | Configuration field `forcePathStyle` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.prefix` | `string` | Configuration field `prefix` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.projectId` | `string` | Configuration field `projectId` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.region` | `string` | Configuration field `region` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.roleArn` | `string` | Configuration field `roleArn` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.roleArnKey` | `string` | Configuration field `roleArnKey` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.secretAccessKey` | `string` | Configuration field `secretAccessKey` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.secretAccessKeyKey` | `string` | Configuration field `secretAccessKeyKey` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.sessionToken` | `string` | Configuration field `sessionToken` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.sessionTokenKey` | `string` | Configuration field `sessionTokenKey` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.objectStorage.type` | `string` | Configuration field `type` under `storage.logsStore.objectStorage`. |
+| `storage.logsStore.type` | `string` | Configuration field `type` under `storage.logsStore`. |
+| `storage.mode` | `string` | Default backend for config/log stores when store-specific type is not set. |
+| `storage.persistence` | `object` | Configuration field `persistence` under `storage`. |
+| `storage.persistence.accessMode` | `string` | Configuration field `accessMode` under `storage.persistence`. |
+| `storage.persistence.enabled` | `boolean` | Configuration field `enabled` under `storage.persistence`. |
+| `storage.persistence.existingClaim` | `string` | Configuration field `existingClaim` under `storage.persistence`. |
+| `storage.persistence.size` | `string` | Configuration field `size` under `storage.persistence`. |
+| `storage.persistence.storageClass` | `string` | Configuration field `storageClass` under `storage.persistence`. |
+
+## terminationGracePeriodSeconds
+
+| Field | Type | Meaning |
+|---|---|---|
+| `terminationGracePeriodSeconds` | `yaml-only` | Grace period before Kubernetes force-terminates the container. |
+
+## tolerations
+
+| Field | Type | Meaning |
+|---|---|---|
+| `tolerations` | `array` | Scheduling tolerations for tainted nodes. |
+
+## vectorStore
+
+| Field | Type | Meaning |
+|---|---|---|
+| `vectorStore` | `object` | Configuration field `vectorStore` under `root values`. |
+| `vectorStore.enabled` | `boolean` | Whether vector store integration is enabled. |
+| `vectorStore.pinecone` | `object` | Pinecone configuration for vector store |
+| `vectorStore.pinecone.enabled` | `boolean` | Configuration field `enabled` under `vectorStore.pinecone`. |
+| `vectorStore.pinecone.external` | `object` | Configuration field `external` under `vectorStore.pinecone`. |
+| `vectorStore.pinecone.external.apiKey` | `string` | Pinecone API key |
+| `vectorStore.pinecone.external.apiKeyKey` | `string` | Key in the secret containing the API key |
+| `vectorStore.pinecone.external.enabled` | `boolean` | Configuration field `enabled` under `vectorStore.pinecone.external`. |
+| `vectorStore.pinecone.external.existingSecret` | `string` | Name of existing secret containing Pinecone API key |
+| `vectorStore.pinecone.external.indexHost` | `string` | Index host URL from Pinecone console (e.g., your-index.svc.environment.pinecone.io) |
+| `vectorStore.qdrant` | `object` | Configuration field `qdrant` under `vectorStore`. |
+| `vectorStore.qdrant.enabled` | `boolean` | Configuration field `enabled` under `vectorStore.qdrant`. |
+| `vectorStore.qdrant.external` | `object` | Configuration field `external` under `vectorStore.qdrant`. |
+| `vectorStore.qdrant.external.apiKey` | `string` | API key for authentication |
+| `vectorStore.qdrant.external.apiKeyKey` | `string` | Configuration field `apiKeyKey` under `vectorStore.qdrant.external`. |
+| `vectorStore.qdrant.external.enabled` | `boolean` | Configuration field `enabled` under `vectorStore.qdrant.external`. |
+| `vectorStore.qdrant.external.existingSecret` | `string` | Configuration field `existingSecret` under `vectorStore.qdrant.external`. |
+| `vectorStore.qdrant.external.host` | `string` | Qdrant server host |
+| `vectorStore.qdrant.external.port` | `integer` | Qdrant server port (default: 6334 for gRPC) |
+| `vectorStore.qdrant.external.useTls` | `boolean` | Use TLS for connection |
+| `vectorStore.qdrant.image` | `object` | Configuration field `image` under `vectorStore.qdrant`. |
+| `vectorStore.qdrant.persistence` | `object` | Configuration field `persistence` under `vectorStore.qdrant`. |
+| `vectorStore.qdrant.resources` | `object` | Configuration field `resources` under `vectorStore.qdrant`. |
+| `vectorStore.redis` | `object` | Configuration field `redis` under `vectorStore`. |
+| `vectorStore.redis.auth` | `object` | Configuration field `auth` under `vectorStore.redis`. |
+| `vectorStore.redis.enabled` | `boolean` | Configuration field `enabled` under `vectorStore.redis`. |
+| `vectorStore.redis.external` | `object` | Configuration field `external` under `vectorStore.redis`. |
+| `vectorStore.redis.external.caCertPem` | `string` | PEM-encoded CA certificate to trust for Redis/Valkey TLS connections |
+| `vectorStore.redis.external.clusterMode` | `boolean` | Use Redis Cluster mode for cluster configuration endpoints |
+| `vectorStore.redis.external.connMaxIdleTime` | `string` | Connection maximum idle time (e.g., '5m') |
+| `vectorStore.redis.external.connMaxLifetime` | `string` | Connection maximum lifetime (e.g., '30m') |
+| `vectorStore.redis.external.contextTimeout` | `string` | Timeout for Redis/Valkey operations (e.g., '10s') |
+| `vectorStore.redis.external.database` | `integer` | Redis/Valkey database number |
+| `vectorStore.redis.external.dialTimeout` | `string` | Timeout for socket connection (e.g., '5s') |
+| `vectorStore.redis.external.enabled` | `boolean` | Configuration field `enabled` under `vectorStore.redis.external`. |
+| `vectorStore.redis.external.existingSecret` | `string` | Configuration field `existingSecret` under `vectorStore.redis.external`. |
+| `vectorStore.redis.external.host` | `string` | Redis/Valkey server host |
+| `vectorStore.redis.external.insecureSkipVerify` | `boolean` | Skip TLS certificate verification for Redis/Valkey connections |
+| `vectorStore.redis.external.maxActiveConns` | `integer` | Maximum number of active connections |
+| `vectorStore.redis.external.maxIdleConns` | `integer` | Maximum number of idle connections |
+| `vectorStore.redis.external.minIdleConns` | `integer` | Minimum number of idle connections |
+| `vectorStore.redis.external.password` | `string` | Password for Redis/Valkey AUTH |
+| `vectorStore.redis.external.passwordKey` | `string` | Configuration field `passwordKey` under `vectorStore.redis.external`. |
+| `vectorStore.redis.external.poolSize` | `integer` | Maximum number of socket connections |
+| `vectorStore.redis.external.port` | `integer` | Redis/Valkey server port |
+| `vectorStore.redis.external.readTimeout` | `string` | Timeout for socket reads (e.g., '3s') |
+| `vectorStore.redis.external.useTls` | `boolean` | Enable TLS for the Redis/Valkey connection |
+| `vectorStore.redis.external.username` | `string` | Username for Redis/Valkey AUTH |
+| `vectorStore.redis.external.writeTimeout` | `string` | Timeout for socket writes (e.g., '3s') |
+| `vectorStore.redis.image` | `object` | Configuration field `image` under `vectorStore.redis`. |
+| `vectorStore.redis.master` | `object` | Configuration field `master` under `vectorStore.redis`. |
+| `vectorStore.redis.metrics` | `object` | Configuration field `metrics` under `vectorStore.redis`. |
+| `vectorStore.type` | `string` | Selected vector store backend implementation. |
+| `vectorStore.weaviate` | `object` | Configuration field `weaviate` under `vectorStore`. |
+| `vectorStore.weaviate.enabled` | `boolean` | Configuration field `enabled` under `vectorStore.weaviate`. |
+| `vectorStore.weaviate.env` | `object` | Configuration field `env` under `vectorStore.weaviate`. |
+| `vectorStore.weaviate.external` | `object` | Configuration field `external` under `vectorStore.weaviate`. |
+| `vectorStore.weaviate.external.apiKey` | `string` | API key for Weaviate authentication |
+| `vectorStore.weaviate.external.apiKeyKey` | `string` | Configuration field `apiKeyKey` under `vectorStore.weaviate.external`. |
+| `vectorStore.weaviate.external.className` | `string` | Class name for Weaviate vector store |
+| `vectorStore.weaviate.external.enabled` | `boolean` | Configuration field `enabled` under `vectorStore.weaviate.external`. |
+| `vectorStore.weaviate.external.existingSecret` | `string` | Configuration field `existingSecret` under `vectorStore.weaviate.external`. |
+| `vectorStore.weaviate.external.grpcHost` | `string` | Weaviate gRPC host (host:port) |
+| `vectorStore.weaviate.external.grpcSecured` | `boolean` | Whether gRPC connection is secured |
+| `vectorStore.weaviate.external.host` | `string` | Weaviate server host (host:port) |
+| `vectorStore.weaviate.external.scheme` | `string` | Configuration field `scheme` under `vectorStore.weaviate.external`. |
+| `vectorStore.weaviate.external.timeout` | `string` | Timeout for Weaviate operations (e.g., '5s') |
+| `vectorStore.weaviate.image` | `object` | Configuration field `image` under `vectorStore.weaviate`. |
+| `vectorStore.weaviate.persistence` | `object` | Configuration field `persistence` under `vectorStore.weaviate`. |
+| `vectorStore.weaviate.replicas` | `integer` | Configuration field `replicas` under `vectorStore.weaviate`. |
+| `vectorStore.weaviate.resources` | `object` | Configuration field `resources` under `vectorStore.weaviate`. |
+
+## volumeMounts
+
+| Field | Type | Meaning |
+|---|---|---|
+| `volumeMounts` | `array` | Additional volume mounts attached to the Bifrost container. |
+
+## volumes
+
+| Field | Type | Meaning |
+|---|---|---|
+| `volumes` | `array` | Additional Kubernetes volumes attached to the pod. |
+
