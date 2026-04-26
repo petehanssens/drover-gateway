@@ -137,8 +137,8 @@ func TestUpdateProvidersConfig_UpdateExistingByKeyID(t *testing.T) {
 }
 
 func TestUpdateProvidersConfig_UpdateExistingByName_FallbackFix(t *testing.T) {
-	// This test verifies the fix for the unique constraint violation issue
-	// when a new UUID is generated for a key that already exists by name
+	// This test verifies that when a key is found by name (KeyID not in DB),
+	// the incoming KeyID is used (user-supplied IDs are respected, not discarded)
 	store := setupRDBTestStore(t)
 	ctx := context.Background()
 
@@ -158,12 +158,12 @@ func TestUpdateProvidersConfig_UpdateExistingByName_FallbackFix(t *testing.T) {
 	err := store.UpdateProvidersConfig(ctx, providers)
 	require.NoError(t, err)
 
-	// Simulate config reload with NEW UUID (as happens when loading from config file)
+	// Simulate user adding an explicit ID to an existing key (user-supplied ID)
 	providers["openai"] = ProviderConfig{
 		Keys: []schemas.Key{
 			{
-				ID:     "new-uuid-from-config-reload", // Different UUID!
-				Name:   "openai-primary",              // Same name
+				ID:     "user-supplied-id", // User-supplied ID replaces original UUID
+				Name:   "openai-primary",   // Same name
 				Value:  *schemas.NewEnvVar("sk-test-key-v2"),
 				Weight: 1.5,
 			},
@@ -172,12 +172,12 @@ func TestUpdateProvidersConfig_UpdateExistingByName_FallbackFix(t *testing.T) {
 	err = store.UpdateProvidersConfig(ctx, providers)
 	require.NoError(t, err, "Should not fail with unique constraint violation")
 
-	// Verify key was updated (not duplicated) and original KeyID preserved
+	// Verify key was updated (not duplicated) and user-supplied KeyID was applied
 	result, err := store.GetProvidersConfig(ctx)
 	require.NoError(t, err)
 	assert.Len(t, result["openai"].Keys, 1, "Should have exactly one key, not duplicated")
 	assert.Equal(t, "sk-test-key-v2", result["openai"].Keys[0].Value.Val, "Value should be updated")
-	assert.Equal(t, "original-uuid", result["openai"].Keys[0].ID, "Original KeyID should be preserved")
+	assert.Equal(t, "user-supplied-id", result["openai"].Keys[0].ID, "User-supplied KeyID should be applied")
 }
 
 func TestUpdateProvidersConfig_MultipleKeys(t *testing.T) {

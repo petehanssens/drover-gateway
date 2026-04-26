@@ -2,9 +2,7 @@
   "$schema": "https://www.getbifrost.ai/schema",
   "client": {
     "allow_direct_keys": false,
-    "allowed_origins": [
-      "*"
-    ],
+    "allowed_origins": ["*"],
     "disable_content_logging": false,
     "drop_excess_requests": false,
     "enable_logging": true,
@@ -39,33 +37,20 @@
         "name": "prod-assistant-us-key-01-configurations",
         "provider_configs": [
           {
-            "key_ids": [
-              "key-azure-us-1-prod"
-            ],
-            "allowed_models": [
-              "*"
-            ],
+            "key_ids": ["key-azure-us-1-prod"],
+            "allowed_models": ["*"],
             "provider": "azure",
             "weight": 0.5
           },
           {
-            "key_ids": [
-              "key-vertex-us-east1-prod",
-              "key-vertex-global-prod"
-            ],
-            "allowed_models": [
-              "*"
-            ],
+            "key_ids": ["key-vertex-us-east1-prod", "key-vertex-global-prod"],
+            "allowed_models": ["*"],
             "provider": "vertex",
             "weight": 0.5
           },
           {
-            "key_ids": [
-              "key-openai-us-1-prod"
-            ],
-            "allowed_models": [
-              "*"
-            ],
+            "key_ids": ["key-openai-us-1-prod"],
+            "allowed_models": ["*"],
             "provider": "openai",
             "weight": 0.5
           }
@@ -78,33 +63,20 @@
         "name": "prod-assistant-eu-key-01-configurations",
         "provider_configs": [
           {
-            "key_ids": [
-              "key-azure-eu-1-prod"
-            ],
-            "allowed_models": [
-              "*"
-            ],
+            "key_ids": ["key-azure-eu-1-prod"],
+            "allowed_models": ["*"],
             "provider": "azure",
             "weight": 0.5
           },
           {
-            "key_ids": [
-              "key-vertex-eu-west1-prod",
-              "key-vertex-global-prod"
-            ],
-            "allowed_models": [
-              "*"
-            ],
+            "key_ids": ["key-vertex-eu-west1-prod", "key-vertex-global-prod"],
+            "allowed_models": ["*"],
             "provider": "vertex",
             "weight": 0.5
           },
           {
-            "key_ids": [
-              "key-bedrock-eu-central-1-prod"
-            ],
-            "allowed_models": [
-              "*"
-            ],
+            "key_ids": ["key-bedrock-eu-central-1-prod"],
+            "allowed_models": ["*"],
             "provider": "bedrock",
             "weight": 0.5
           }
@@ -138,15 +110,7 @@
             "api_version": "2025-03-01-preview",
             "endpoint": "https://orca-prod-us-east-1.openai.azure.com/"
           },
-          "models": [
-            "gpt-4.1",
-            "gpt-4.1-mini",
-            "gpt-4o",
-            "gpt-4o-mini",
-            "gpt-5",
-            "gpt-5-mini",
-            "gpt-5.1"
-          ],
+          "models": ["gpt-4.1", "gpt-4.1-mini", "gpt-4o", "gpt-4o-mini", "gpt-5", "gpt-5-mini", "gpt-5.1"],
           "name": "azure-us-key-1-prod",
           "value": "env.AZURE_OPENAI_API_KEY_US_EAST_1",
           "weight": 1
@@ -157,15 +121,7 @@
             "api_version": "2025-03-01-preview",
             "endpoint": "https://orca-prod-us-east-2.openai.azure.com/"
           },
-          "models": [
-            "gpt-4.1",
-            "gpt-4.1-mini",
-            "gpt-4o",
-            "gpt-4o-mini",
-            "gpt-5",
-            "gpt-5-mini",
-            "gpt-5.1"
-          ],
+          "models": ["gpt-4.1", "gpt-4.1-mini", "gpt-4o", "gpt-4o-mini", "gpt-5", "gpt-5-mini", "gpt-5.1"],
           "name": "azure-us-key-2-prod",
           "value": "env.AZURE_OPENAI_API_KEY_US_EAST_2",
           "weight": 1
@@ -176,15 +132,7 @@
             "api_version": "2025-03-01-preview",
             "endpoint": "https://orca-prod-eu-central-1.openai.azure.com/"
           },
-          "models": [
-            "gpt-4.1",
-            "gpt-4.1-mini",
-            "gpt-4o",
-            "gpt-4o-mini",
-            "gpt-5",
-            "gpt-5-mini",
-            "gpt-5.1"
-          ],
+          "models": ["gpt-4.1", "gpt-4.1-mini", "gpt-4o", "gpt-4o-mini", "gpt-5", "gpt-5-mini", "gpt-5.1"],
           "name": "azure-eu-key-1-prod",
           "value": "env.AZURE_OPENAI_API_KEY_EU_CENTRAL_1",
           "weight": 1
@@ -200,9 +148,7 @@
             "region": "us-east-1",
             "secret_key": "env.AWS_SECRET_ACCESS_KEY_US_EAST_1"
           },
-          "models": [
-            "*"
-          ],
+          "models": ["*"],
           "name": "bedrock-us-east-1-prod",
           "weight": 1
         },
@@ -213,9 +159,7 @@
             "region": "us-west-2",
             "secret_key": "env.AWS_SECRET_ACCESS_KEY_US_WEST_2"
           },
-          "models": [
-            "*"
-          ],
+          "models": ["*"],
           "name": "bedrock-us-west-2-prod",
           "weight": 1
         },
@@ -226,9 +170,7 @@
             "region": "eu-central-1",
             "secret_key": "env.AWS_SECRET_ACCESS_KEY_EU_CENTRAL_1"
           },
-          "models": [
-            "*"
-          ],
+          "models": ["*"],
           "name": "bedrock-eu-central-1-prod",
           "weight": 1
         }
@@ -238,11 +180,7 @@
       "keys": [
         {
           "id": "key-vertex-us-east1-prod",
-          "models": [
-            "google/gemini-2.5-pro",
-            "google/gemini-2.5-flash-lite",
-            "google/gemini-2.5-flash"
-          ],
+          "models": ["google/gemini-2.5-pro", "google/gemini-2.5-flash-lite", "google/gemini-2.5-flash"],
           "name": "vertex-us-east1-prod",
           "vertex_key_config": {
             "auth_credentials": "env.VERTEX_CREDENTIALS_US_EAST1",
@@ -253,11 +191,7 @@
         },
         {
           "id": "key-vertex-eu-west1-prod",
-          "models": [
-            "google/gemini-2.5-pro",
-            "google/gemini-2.5-flash-lite",
-            "google/gemini-2.5-flash"
-          ],
+          "models": ["google/gemini-2.5-pro", "google/gemini-2.5-flash-lite", "google/gemini-2.5-flash"],
           "name": "vertex-europe-west1-prod",
           "vertex_key_config": {
             "auth_credentials": "env.VERTEX_CREDENTIALS_EUROPE_WEST1",
@@ -268,11 +202,7 @@
         },
         {
           "id": "key-vertex-us-west1-prod",
-          "models": [
-            "google/gemini-2.5-pro",
-            "google/gemini-2.5-flash-lite",
-            "google/gemini-2.5-flash"
-          ],
+          "models": ["google/gemini-2.5-pro", "google/gemini-2.5-flash-lite", "google/gemini-2.5-flash"],
           "name": "vertex-us-west1-prod",
           "vertex_key_config": {
             "auth_credentials": "env.VERTEX_CREDENTIALS_US_WEST1",
@@ -283,10 +213,7 @@
         },
         {
           "id": "key-vertex-global-prod",
-          "models": [
-            "google/gemini-3-pro-preview",
-            "google/gemini-3-flash-preview"
-          ],
+          "models": ["google/gemini-3-pro-preview", "google/gemini-3-flash-preview"],
           "name": "vertex-global-prod",
           "vertex_key_config": {
             "auth_credentials": "env.VERTEX_CREDENTIALS_GLOBAL",
@@ -304,9 +231,7 @@
           "name": "openai-us-key-1-prod",
           "value": "env.OPENAI_API_KEY_US_EAST_1",
           "weight": 1,
-          "models": [
-            "*"
-          ]
+          "models": ["*"]
         }
       ]
     }

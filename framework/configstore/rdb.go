@@ -516,9 +516,8 @@ func (s *RDBConfigStore) UpdateProvidersConfig(ctx context.Context, providers ma
 				// KeyID not found, try fallback lookup by Name (handles config reload with new UUID)
 				result = txDB.WithContext(ctx).Where("name = ?", dbKey.Name).First(&existingKey)
 				if result.Error == nil {
-					// Found by name - update existing key, preserve original KeyID
+					// Found by name - update existing key; use incoming KeyID (may be user-supplied)
 					dbKey.ID = existingKey.ID                             // Keep the same database ID
-					dbKey.KeyID = existingKey.KeyID                       // Preserve original KeyID
 					dbKey.ProviderID = existingKey.ProviderID             // Preserve the existing ProviderID
 					dbKey.Enabled = existingKey.Enabled                   // Preserve the existing Enabled status
 					dbKey.Status = existingKey.Status                     // Preserve status (UI-managed)

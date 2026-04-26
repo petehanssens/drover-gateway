@@ -2801,6 +2801,10 @@
     "providerKey": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the key"
+        },
         "name": {
           "type": "string"
         },

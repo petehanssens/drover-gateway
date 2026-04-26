@@ -804,6 +804,14 @@ func processProvider(
 ) error {
 	provider := schemas.ModelProvider(strings.ToLower(providerName))
 
+	// Capture user-supplied IDs before UUID generation so they can be preserved
+	// through the merge/reconcile logic (which otherwise always prefers the DB UUID).
+	userSuppliedKeyIDs := make(map[string]string, len(providerCfgInFile.Keys))
+	for _, key := range providerCfgInFile.Keys {
+		if key.ID != "" {
+			userSuppliedKeyIDs[key.Name] = key.ID
+		}
+	}
 	// Process environment variables in keys (including key-level configs)
 	for i, providerKeyInFile := range providerCfgInFile.Keys {
 		if providerKeyInFile.ID == "" {
@@ -820,7 +828,7 @@ func processProvider(
 	}
 	providerCfgInFile.ConfigHash = fileProviderConfigHash
 	// Merge with existing config using hash-based reconciliation
-	mergeProviderWithHash(provider, providerCfgInFile, providersInConfigStore)
+	mergeProviderWithHash(provider, providerCfgInFile, providersInConfigStore, userSuppliedKeyIDs)
 	return nil
 }
 
@@ -829,6 +837,7 @@ func mergeProviderWithHash(
 	provider schemas.ModelProvider,
 	providerCfgInFile configstore.ProviderConfig,
 	providersInConfigStore map[schemas.ModelProvider]configstore.ProviderConfig,
+	userSuppliedKeyIDs map[string]string,
 ) {
 	existingCfg, exists := providersInConfigStore[provider]
 	if !exists {
@@ -840,13 +849,13 @@ func mergeProviderWithHash(
 	if existingCfg.ConfigHash != providerCfgInFile.ConfigHash {
 		// Hash mismatch - config.json was changed, sync from file
 		logger.Debug("config hash mismatch for provider %s, syncing from config file", provider)
-		mergedKeys := mergeProviderKeys(provider, providerCfgInFile.Keys, existingCfg.Keys)
+		mergedKeys := mergeProviderKeys(provider, providerCfgInFile.Keys, existingCfg.Keys, userSuppliedKeyIDs)
 		providerCfgInFile.Keys = mergedKeys
 		providersInConfigStore[provider] = providerCfgInFile
 	} else {
 		// Provider hash matches - but still check individual keys
 		logger.Debug("config hash matches for provider %s, checking individual keys", provider)
-		mergedKeys := reconcileProviderKeys(provider, providerCfgInFile.Keys, existingCfg.Keys)
+		mergedKeys := reconcileProviderKeys(provider, providerCfgInFile.Keys, existingCfg.Keys, userSuppliedKeyIDs)
 		existingCfg.Keys = mergedKeys
 		providersInConfigStore[provider] = existingCfg
 	}
@@ -854,7 +863,7 @@ func mergeProviderWithHash(
 
 // mergeProviderKeys syncs keys when provider hash has changed (file is source of truth).
 // Keys in file are kept, keys only in DB are removed.
-func mergeProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []schemas.Key) []schemas.Key {
+func mergeProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []schemas.Key, userSuppliedKeyIDs map[string]string) []schemas.Key {
 	mergedKeys := fileKeys
 	for _, dbKey := range dbKeys {
 		found := false
@@ -864,7 +873,9 @@ func mergeProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []schema
 			if err != nil {
 				logger.Warn("failed to generate key hash for file key %s (%s): %v, falling back to name comparison", fileKey.Name, provider, err)
 				if fileKey.Name == dbKey.Name {
-					fileKeys[i].ID = dbKey.ID
+					if _, hasUserID := userSuppliedKeyIDs[fileKeys[i].Name]; !hasUserID {
+						fileKeys[i].ID = dbKey.ID
+					}
 					fileKeys[i].Status = dbKey.Status
 					fileKeys[i].Description = dbKey.Description
 					found = true
@@ -877,7 +888,9 @@ func mergeProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []schema
 			// Use stored ConfigHash for comparison if available
 			if dbKey.ConfigHash != "" {
 				if fileKeyHash == dbKey.ConfigHash || fileKey.Name == dbKey.Name {
-					fileKeys[i].ID = dbKey.ID
+					if _, hasUserID := userSuppliedKeyIDs[fileKeys[i].Name]; !hasUserID {
+						fileKeys[i].ID = dbKey.ID
+					}
 					fileKeys[i].Status = dbKey.Status
 					fileKeys[i].Description = dbKey.Description
 					found = true
@@ -905,7 +918,9 @@ func mergeProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []schema
 				if err != nil {
 					logger.Warn("failed to generate key hash for db key %s (%s): %v, falling back to name comparison", dbKey.Name, provider, err)
 					if fileKey.Name == dbKey.Name {
-						fileKeys[i].ID = dbKey.ID
+						if _, hasUserID := userSuppliedKeyIDs[fileKeys[i].Name]; !hasUserID {
+							fileKeys[i].ID = dbKey.ID
+						}
 						fileKeys[i].Status = dbKey.Status
 						fileKeys[i].Description = dbKey.Description
 						found = true
@@ -914,7 +929,9 @@ func mergeProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []schema
 					continue
 				}
 				if fileKeyHash == dbKeyHash || fileKey.Name == dbKey.Name {
-					fileKeys[i].ID = dbKey.ID
+					if _, hasUserID := userSuppliedKeyIDs[fileKeys[i].Name]; !hasUserID {
+						fileKeys[i].ID = dbKey.ID
+					}
 					fileKeys[i].Status = dbKey.Status
 					fileKeys[i].Description = dbKey.Description
 					found = true
@@ -931,7 +948,7 @@ func mergeProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []schema
 }
 
 // reconcileProviderKeys reconciles keys when provider hash matches
-func reconcileProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []schemas.Key) []schemas.Key {
+func reconcileProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []schemas.Key, userSuppliedKeyIDs map[string]string) []schemas.Key {
 	mergedKeys := make([]schemas.Key, 0)
 	fileKeysByName := make(map[string]int) // name -> index in file keys
 	for i, fileKey := range fileKeys {
@@ -944,6 +961,9 @@ func reconcileProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []sc
 			fileKeyHash, err := configstore.GenerateKeyHash(fileKey)
 			if err != nil {
 				logger.Warn("failed to generate key hash for file key %s (%s): %v", fileKey.Name, provider, err)
+				if userID, hasUserID := userSuppliedKeyIDs[dbKey.Name]; hasUserID && dbKey.ID != userID {
+					dbKey.ID = userID
+				}
 				mergedKeys = append(mergedKeys, dbKey)
 				delete(fileKeysByName, dbKey.Name)
 				continue
@@ -954,11 +974,16 @@ func reconcileProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []sc
 			if dbKey.ConfigHash != "" {
 				if fileKeyHash == dbKey.ConfigHash {
 					// File unchanged - keep DB version (preserves user updates)
+					if userID, hasUserID := userSuppliedKeyIDs[dbKey.Name]; hasUserID && dbKey.ID != userID {
+						dbKey.ID = userID
+					}
 					mergedKeys = append(mergedKeys, dbKey)
 				} else {
 					// File changed - use file version but preserve ID and set ConfigHash
 					logger.Debug("key %s changed in config file for provider %s, updating", fileKey.Name, provider)
-					fileKey.ID = dbKey.ID
+					if _, hasUserID := userSuppliedKeyIDs[fileKey.Name]; !hasUserID {
+						fileKey.ID = dbKey.ID
+					}
 					fileKey.ConfigHash = fileKeyHash
 					fileKey.Status = dbKey.Status
 					fileKey.Description = dbKey.Description
@@ -985,6 +1010,9 @@ func reconcileProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []sc
 				})
 				if err != nil {
 					logger.Warn("failed to generate key hash for db key %s (%s): %v", dbKey.Name, provider, err)
+					if userID, hasUserID := userSuppliedKeyIDs[dbKey.Name]; hasUserID && dbKey.ID != userID {
+						dbKey.ID = userID
+					}
 					mergedKeys = append(mergedKeys, dbKey)
 					delete(fileKeysByName, dbKey.Name)
 					continue
@@ -992,13 +1020,18 @@ func reconcileProviderKeys(provider schemas.ModelProvider, fileKeys, dbKeys []sc
 				if fileKeyHash != dbKeyHash {
 					// Key changed in file - use file version but preserve ID and set ConfigHash
 					logger.Debug("key %s changed in config file for provider %s, updating", fileKey.Name, provider)
-					fileKey.ID = dbKey.ID
+					if _, hasUserID := userSuppliedKeyIDs[fileKey.Name]; !hasUserID {
+						fileKey.ID = dbKey.ID
+					}
 					fileKey.ConfigHash = fileKeyHash
 					fileKey.Status = dbKey.Status
 					fileKey.Description = dbKey.Description
 					mergedKeys = append(mergedKeys, fileKey)
 				} else {
 					// Key unchanged - keep DB version
+					if userID, hasUserID := userSuppliedKeyIDs[dbKey.Name]; hasUserID && dbKey.ID != userID {
+						dbKey.ID = userID
+					}
 					mergedKeys = append(mergedKeys, dbKey)
 				}
 			}
