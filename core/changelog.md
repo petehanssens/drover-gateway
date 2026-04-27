@@ -1,1 +1,2 @@
 - fix: response extra fields request type corruption for streaming requests on high concurrency
+- feat: adds option to disable MCP clients

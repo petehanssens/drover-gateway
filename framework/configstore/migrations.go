@@ -617,6 +617,9 @@ func triggerMigrations(ctx context.Context, db *gorm.DB) error {
 	if err := migrationConvertMCPClientToolSyncIntervalMinutesToSeconds(ctx, db); err != nil {
 		return err
 	}
+	if err := migrationAddMCPClientDisabledColumn(ctx, db); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -7035,6 +7038,37 @@ func migrationAddOCRPricingColumns(ctx context.Context, db *gorm.DB) error {
 	}})
 	if err := m.Migrate(); err != nil {
 		return fmt.Errorf("error running add_ocr_pricing_columns migration: %s", err.Error())
+	}
+	return nil
+}
+
+// migrationAddMCPClientDisabledColumn adds the disabled column to the config_mcp_clients table
+func migrationAddMCPClientDisabledColumn(ctx context.Context, db *gorm.DB) error {
+	m := migrator.New(db, migrator.DefaultOptions, []*migrator.Migration{{
+		ID: "add_mcp_client_disabled_column",
+		Migrate: func(tx *gorm.DB) error {
+			tx = tx.WithContext(ctx)
+			mg := tx.Migrator()
+			if !mg.HasColumn(&tables.TableMCPClient{}, "disabled") {
+				if err := mg.AddColumn(&tables.TableMCPClient{}, "disabled"); err != nil {
+					return fmt.Errorf("failed to add disabled column: %w", err)
+				}
+			}
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			tx = tx.WithContext(ctx)
+			mg := tx.Migrator()
+			if mg.HasColumn(&tables.TableMCPClient{}, "disabled") {
+				if err := mg.DropColumn(&tables.TableMCPClient{}, "disabled"); err != nil {
+					return fmt.Errorf("failed to drop disabled column: %w", err)
+				}
+			}
+			return nil
+		},
+	}})
+	if err := m.Migrate(); err != nil {
+		return fmt.Errorf("error running add_mcp_client_disabled_column migration: %s", err.Error())
 	}
 	return nil
 }

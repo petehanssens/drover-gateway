@@ -1251,6 +1251,7 @@ func mcpClientConfigToTable(clientConfig *schemas.MCPClientConfig) (configstoreT
 		ToolSyncInterval:          int(clientConfig.ToolSyncInterval / time.Second),
 		ToolPricing:               clientConfig.ToolPricing,
 		AllowOnAllVirtualKeys:     clientConfig.AllowOnAllVirtualKeys,
+		Disabled:                  clientConfig.Disabled,
 		DiscoveredTools:           clientConfig.DiscoveredTools,
 		DiscoveredToolNameMapping: clientConfig.DiscoveredToolNameMapping,
 		ConfigHash:                clientConfig.ConfigHash,
@@ -4560,6 +4561,7 @@ func (c *Config) UpdateMCPClient(ctx context.Context, id string, updatedConfig *
 	c.MCPConfig.ClientConfigs[configIndex].IsPingAvailable = updatedConfig.IsPingAvailable
 	c.MCPConfig.ClientConfigs[configIndex].ToolSyncInterval = updatedConfig.ToolSyncInterval
 	c.MCPConfig.ClientConfigs[configIndex].AllowOnAllVirtualKeys = updatedConfig.AllowOnAllVirtualKeys
+	c.MCPConfig.ClientConfigs[configIndex].Disabled = updatedConfig.Disabled
 	return nil
 }
 
@@ -4598,6 +4600,66 @@ func (c *Config) RemoveMCPClient(ctx context.Context, id string) error {
 		}
 	}
 	return nil
+}
+
+// DisableMCPClient persists disabled=true to the DB and shuts down the client's
+// connection, health monitor, and tool syncer at runtime.
+func (c *Config) DisableMCPClient(ctx context.Context, id string) error {
+	if c.client == nil {
+		return fmt.Errorf("bifrost client not set")
+	}
+
+	dbClient, err := c.ConfigStore.GetMCPClientByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("MCP client '%s' not found: %w", id, err)
+	}
+	dbClient.Disabled = true
+	if err := c.ConfigStore.UpdateMCPClientConfig(ctx, id, dbClient); err != nil {
+		return fmt.Errorf("failed to persist disabled state: %w", err)
+	}
+
+	c.muMCP.Lock()
+	if c.MCPConfig != nil {
+		for _, cc := range c.MCPConfig.ClientConfigs {
+			if cc.ID == id {
+				cc.Disabled = true
+				break
+			}
+		}
+	}
+	c.muMCP.Unlock()
+
+	return c.client.DisableMCPClient(id)
+}
+
+// EnableMCPClient persists disabled=false to the DB and reconnects the client
+// at runtime, restarting its health monitor and tool syncer.
+func (c *Config) EnableMCPClient(ctx context.Context, id string) error {
+	if c.client == nil {
+		return fmt.Errorf("bifrost client not set")
+	}
+
+	dbClient, err := c.ConfigStore.GetMCPClientByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("MCP client '%s' not found: %w", id, err)
+	}
+	dbClient.Disabled = false
+	if err := c.ConfigStore.UpdateMCPClientConfig(ctx, id, dbClient); err != nil {
+		return fmt.Errorf("failed to persist enabled state: %w", err)
+	}
+
+	c.muMCP.Lock()
+	if c.MCPConfig != nil {
+		for _, cc := range c.MCPConfig.ClientConfigs {
+			if cc.ID == id {
+				cc.Disabled = false
+				break
+			}
+		}
+	}
+	c.muMCP.Unlock()
+
+	return c.client.EnableMCPClient(id)
 }
 
 // RedactMCPClientConfig creates a redacted copy of a MCPClientConfig configuration.

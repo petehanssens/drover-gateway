@@ -103,6 +103,21 @@ func (m *MCPManager) AddClient(config *schemas.MCPClientConfig) error {
 		return fmt.Errorf("client %s already exists", config.Name)
 	}
 
+	// Disabled clients get a dormant placeholder — no connection, no workers.
+	if config.Disabled {
+		m.clientMap[config.ID] = &schemas.MCPClientState{
+			Name:            config.Name,
+			ExecutionConfig: config,
+			State:           schemas.MCPConnectionStateDisabled,
+			ToolMap:         make(map[string]schemas.ChatTool),
+			ToolNameMapping: make(map[string]string),
+			ConnectionInfo:  &schemas.MCPClientConnectionInfo{Type: config.ConnectionType},
+		}
+		m.mu.Unlock()
+		m.logger.Debug("%s MCP client '%s' registered in disabled state", MCPLogPrefix, config.Name)
+		return nil
+	}
+
 	// Create placeholder entry
 	m.clientMap[config.ID] = &schemas.MCPClientState{
 		Name:            config.Name,
@@ -135,10 +150,10 @@ func (m *MCPManager) AddClient(config *schemas.MCPClientConfig) error {
 				}
 				client.ToolNameMapping = config.DiscoveredToolNameMapping
 				client.State = schemas.MCPConnectionStateConnected
-				m.logger.Info("%s Per-user OAuth MCP client '%s' restored with %d tools", MCPLogPrefix, config.Name, len(config.DiscoveredTools))
+				m.logger.Debug("%s Per-user OAuth MCP client '%s' restored with %d tools", MCPLogPrefix, config.Name, len(config.DiscoveredTools))
 			} else {
 				client.State = schemas.MCPConnectionStatePendingTools
-				m.logger.Info("%s Per-user OAuth MCP client '%s' registered (connection deferred to runtime)", MCPLogPrefix, config.Name)
+				m.logger.Debug("%s Per-user OAuth MCP client '%s' registered (connection deferred to runtime)", MCPLogPrefix, config.Name)
 			}
 		}
 		m.mu.Unlock()
@@ -297,6 +312,122 @@ func (m *MCPManager) removeClientUnsafe(id string) error {
 	client.ToolMap = make(map[string]schemas.ChatTool)
 
 	delete(m.clientMap, id)
+	return nil
+}
+
+// DisableClient shuts down a client's connection, health monitor, and tool syncer
+// without removing it from the manager. The client entry is kept in clientMap with
+// state MCPConnectionStateDisabled so it can be re-enabled later.
+//
+// Parameters:
+//   - id: ID of the client to disable
+//
+// Returns:
+//   - error: Any error that occurred during disable
+func (m *MCPManager) DisableClient(id string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	clientState, ok := m.clientMap[id]
+	if !ok {
+		return fmt.Errorf("client %s not found", id)
+	}
+	if clientState.State == schemas.MCPConnectionStateDisabled {
+		return fmt.Errorf("client %s is already disabled", clientState.ExecutionConfig.Name)
+	}
+
+	m.logger.Debug("%s Disabling MCP client '%s'", MCPLogPrefix, clientState.ExecutionConfig.Name)
+
+	m.healthMonitorManager.StopMonitoring(id)
+	m.toolSyncManager.StopSyncing(id)
+
+	if clientState.CancelFunc != nil {
+		clientState.CancelFunc()
+		clientState.CancelFunc = nil
+	}
+	if clientState.Conn != nil {
+		if err := clientState.Conn.Close(); err != nil {
+			m.logger.Error("%s Failed to close connection for MCP client '%s': %v", MCPLogPrefix, clientState.ExecutionConfig.Name, err)
+		}
+		clientState.Conn = nil
+	}
+
+	// Per-user OAuth clients have no persistent connection — their ToolMap holds
+	// tools discovered via OAuth that can only be recovered by re-running the OAuth
+	// flow. Preserve the ToolMap so re-enabling restores tools immediately.
+	if clientState.ExecutionConfig.AuthType != schemas.MCPAuthTypePerUserOauth {
+		clientState.ToolMap = make(map[string]schemas.ChatTool)
+		clientState.ToolNameMapping = make(map[string]string)
+	}
+	clientState.State = schemas.MCPConnectionStateDisabled
+	clientState.ExecutionConfig.Disabled = true
+
+	m.logger.Debug("%s MCP client '%s' disabled successfully", MCPLogPrefix, clientState.ExecutionConfig.Name)
+	return nil
+}
+
+// EnableClient re-enables a previously disabled MCP client by reconnecting it
+// and restarting its health monitor and tool syncer.
+//
+// Parameters:
+//   - id: ID of the client to enable
+//
+// Returns:
+//   - error: Any error that occurred during enable or connection
+func (m *MCPManager) EnableClient(id string) error {
+	m.mu.Lock()
+	clientState, ok := m.clientMap[id]
+	if !ok {
+		m.mu.Unlock()
+		return fmt.Errorf("client %s not found", id)
+	}
+	if clientState.State != schemas.MCPConnectionStateDisabled {
+		m.mu.Unlock()
+		return fmt.Errorf("client %s is not disabled (current state: %s)", clientState.ExecutionConfig.Name, clientState.State)
+	}
+
+	clientState.ExecutionConfig.Disabled = false
+	configCopy := clientState.ExecutionConfig
+	m.mu.Unlock()
+
+	m.logger.Debug("%s Enabling MCP client '%s'", MCPLogPrefix, configCopy.Name)
+
+	// Per-user OAuth clients have no persistent connection — auth is per-request.
+	// Mirror the AddClient early-return path: just restore the runtime state based
+	// on whether tools were previously discovered.
+	if configCopy.AuthType == schemas.MCPAuthTypePerUserOauth {
+		m.mu.Lock()
+		if cs, exists := m.clientMap[id]; exists {
+			if len(cs.ToolMap) > 0 {
+				cs.State = schemas.MCPConnectionStateConnected
+			} else {
+				cs.State = schemas.MCPConnectionStatePendingTools
+			}
+		}
+		m.mu.Unlock()
+		m.logger.Debug("%s Per-user OAuth MCP client '%s' enabled (no persistent connection)", MCPLogPrefix, configCopy.Name)
+		return nil
+	}
+
+	if err := m.connectToMCPClient(configCopy); err != nil {
+		// Connection failed — leave the entry as Disconnected so the health monitor can recover it
+		m.mu.Lock()
+		if cs, exists := m.clientMap[id]; exists {
+			cs.State = schemas.MCPConnectionStateDisconnected
+		}
+		m.mu.Unlock()
+
+		isPingAvailable := true
+		if configCopy.IsPingAvailable != nil {
+			isPingAvailable = *configCopy.IsPingAvailable
+		}
+		monitor := NewClientHealthMonitor(m, id, DefaultHealthCheckInterval, isPingAvailable, m.logger)
+		m.healthMonitorManager.StartMonitoring(monitor)
+
+		return fmt.Errorf("failed to connect MCP client '%s': %w", configCopy.Name, err)
+	}
+
+	m.logger.Debug("%s MCP client '%s' enabled successfully", MCPLogPrefix, configCopy.Name)
 	return nil
 }
 

@@ -27,6 +27,8 @@ type MCPManager interface {
 	RemoveMCPClient(ctx context.Context, id string) error
 	UpdateMCPClient(ctx context.Context, id string, updatedConfig *schemas.MCPClientConfig) error
 	ReconnectMCPClient(ctx context.Context, id string) error
+	DisableMCPClient(ctx context.Context, id string) error
+	EnableMCPClient(ctx context.Context, id string) error
 	// VerifyPerUserOAuthConnection verifies an MCP server using a temporary access
 	// token and discovers available tools. The connection is closed after verification.
 	VerifyPerUserOAuthConnection(ctx context.Context, config *schemas.MCPClientConfig, accessToken string) (map[string]schemas.ChatTool, map[string]string, error)
@@ -790,8 +792,12 @@ func (h *MCPHandler) updateMCPClient(ctx *fasthttp.RequestCtx) {
 		ToolSyncInterval:      toolSyncInterval,
 		ToolPricing:           req.ToolPricing,
 		AllowOnAllVirtualKeys: req.AllowOnAllVirtualKeys,
+		Disabled:              req.Disabled,
 	}
-	// Update MCP client in memory
+
+	disabledToggled := existingConfig.Disabled != req.Disabled
+
+	// Update MCP client config in memory (always — applies name/tools/header changes)
 	if err := h.mcpManager.UpdateMCPClient(ctx, id, schemasConfig); err != nil {
 		// Rollback DB update to keep DB and memory in sync
 		if h.store.ConfigStore != nil && oldDBConfig != nil {
@@ -802,6 +808,23 @@ func (h *MCPHandler) updateMCPClient(ctx *fasthttp.RequestCtx) {
 		logger.Error(fmt.Sprintf("Failed to update MCP client: %v", err))
 		SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("failed to update mcp client: %v", err))
 		return
+	}
+
+	// Handle disable/enable toggle after applying config changes
+	if disabledToggled {
+		if req.Disabled {
+			if err := h.mcpManager.DisableMCPClient(ctx, id); err != nil {
+				logger.Error(fmt.Sprintf("Failed to disable MCP client: %v", err))
+				SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("updated mcp config but failed to disable MCP client: %v", err))
+				return
+			}
+		} else {
+			if err := h.mcpManager.EnableMCPClient(ctx, id); err != nil {
+				logger.Error(fmt.Sprintf("Failed to enable MCP client: %v", err))
+				SendError(ctx, fasthttp.StatusInternalServerError, fmt.Sprintf("updated mcp config but failed to enable MCP client: %v", err))
+				return
+			}
+		}
 	}
 
 	// Manage VK assignments if vk_configs was provided

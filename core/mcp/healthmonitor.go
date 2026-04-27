@@ -156,6 +156,13 @@ func (chm *ClientHealthMonitor) performHealthCheck() {
 		return
 	}
 
+	// Do not health-check intentionally disabled clients
+	// Health monitoring is already stopped for disabled clients. This is just a sanity check.
+	if clientState != nil && clientState.State == schemas.MCPConnectionStateDisabled {
+		chm.Stop()
+		return
+	}
+
 	var err error
 	if conn == nil {
 		// No active connection — treat as a health check failure
@@ -209,6 +216,17 @@ func (chm *ClientHealthMonitor) attemptReconnect() {
 	}()
 
 	chm.logger.Debug("%s Attempting to reconnect MCP client %s...", MCPLogPrefix, chm.clientID)
+
+	// Do not attempt reconnect if the client has been intentionally disabled
+	// Health monitoring is already stopped for disabled clients. This is just a sanity check.
+	chm.manager.mu.RLock()
+	clientState, exists := chm.manager.clientMap[chm.clientID]
+	isDisabled := exists && clientState != nil && clientState.State == schemas.MCPConnectionStateDisabled
+	chm.manager.mu.RUnlock()
+	if isDisabled {
+		chm.logger.Debug("%s Skipping reconnect for disabled MCP client %s", MCPLogPrefix, chm.clientID)
+		return
+	}
 
 	if err := chm.manager.ReconnectClient(chm.clientID); err != nil {
 		chm.logger.Warn("%s Failed to reconnect MCP client %s: %v", MCPLogPrefix, chm.clientID, err)

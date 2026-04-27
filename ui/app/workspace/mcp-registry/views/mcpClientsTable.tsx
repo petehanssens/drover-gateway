@@ -197,13 +197,14 @@ export default function MCPClientsTable({
 							<TableHead className="font-semibold">Enabled Tools</TableHead>
 							<TableHead className="font-semibold">Auto-execute Tools</TableHead>
 							<TableHead className="font-semibold">State</TableHead>
+							<TableHead className="font-semibold">Enabled</TableHead>
 							<TableHead className="w-20 text-right"></TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{mcpClients.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={8} className="h-24 text-center">
+								<TableCell colSpan={9} className="h-24 text-center">
 									<span className="text-muted-foreground text-sm">No matching MCP servers found.</span>
 								</TableCell>
 							</TableRow>
@@ -260,12 +261,17 @@ export default function MCPClientsTable({
 										<TableCell>
 											<Badge className={MCP_STATUS_COLORS[c.state]}>{c.state}</Badge>
 										</TableCell>
+										<TableCell>
+											<Badge variant={c.config.disabled ? "secondary" : "default"}>
+												{c.config.disabled ? "Disabled" : "Enabled"}
+											</Badge>
+										</TableCell>
 										<TableCell className="space-x-2 text-right" onClick={(e) => e.stopPropagation()}>
 											<Button
 												variant="ghost"
 												size="icon"
 												onClick={() => handleReconnect(c)}
-												disabled={reconnectingClients.includes(c.config.client_id) || !hasUpdateMCPClientAccess}
+												disabled={reconnectingClients.includes(c.config.client_id) || !hasUpdateMCPClientAccess || c.state === "disabled"}
 												title="Reconnect"
 											>
 												{reconnectingClients.includes(c.config.client_id) ? (
