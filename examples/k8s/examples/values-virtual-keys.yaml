@@ -1,0 +1,70 @@
+# Virtual key examples.
+#
+# Usage:
+#   helm upgrade --install "${RELEASE_NAME}" ./helm-charts/bifrost \
+#     --namespace "${NAMESPACE}" \
+#     -f examples/k8s/examples/values.yaml \
+#     -f examples/k8s/examples/values-storage-sqlite.yaml \
+#     -f examples/k8s/examples/values-providers.yaml \
+#     -f examples/k8s/examples/values-governance-teams.yaml \
+#     -f examples/k8s/examples/values-virtual-keys.yaml \
+#     --wait \
+#     --timeout 5m
+
+bifrost:
+  governance:
+    virtualKeys:
+      - id: "vk-openai-mini"
+        name: "OpenAI Mini Virtual Key"
+        description: "Team-scoped VK restricted to OpenAI gpt-4o-mini."
+        value: "sk-bf-example-openai-mini"
+        is_active: true
+        team_id: "team-platform"
+        rate_limit_id: "rl-team-default"
+        provider_configs:
+          - provider: "openai"
+            allowed_models:
+              - "gpt-4o-mini"
+            # In Helm/config.json these are provider key names (unique), not database IDs.
+            key_ids:
+              - "openai-key"
+
+      - id: "vk-multi-provider"
+        name: "Multi Provider Virtual Key"
+        description: "Customer-scoped VK that allows selected OpenAI and Anthropic models."
+        value: "sk-bf-example-multi-provider"
+        is_active: true
+        customer_id: "customer-acme"
+        rate_limit_id: "rl-team-default"
+        provider_configs:
+          - provider: "anthropic"
+            weight: 0.3
+            allowed_models:
+              - "*"
+            key_ids:
+              - "anthropic-key"
+          - provider: "openai"
+            weight: 0.7
+            allowed_models:
+              - "gpt-4o-mini"
+              - "gpt-4o"
+            key_ids:
+              - "openai-key"
+
+      # - id: "vk-with-mcp"
+      #   name: "Virtual Key With MCP"
+      #   description: "VK scoped to OpenAI plus a named MCP client/tool allow-list."
+      #   value: "sk-bf-example-mcp"
+      #   is_active: true
+      #   team_id: "team-platform"
+      #   provider_configs:
+      #     - provider: "openai"
+      #       allowed_models:
+      #         - "*"
+      #       key_ids:
+      #         - "openai-key"
+      #   mcp_configs:
+      #     - mcp_client_name: "filesystem"
+      #       tools_to_execute:
+      #         - "read_file"
+      #         - "list_directory"

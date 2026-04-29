@@ -3,7 +3,7 @@ bifrost:
     # Primary provider
     openai:
       network_config:
-        base_url: "https://api.openai.com/v1"
+        base_url: "https://api.openai.com"
         default_request_timeout_in_seconds: 58
         stream_idle_timeout_in_seconds: 59
         max_retries: 7
@@ -25,7 +25,7 @@ bifrost:
       store_raw_request_response: true
       concurrency_and_buffer_size:
         concurrency: 100
-        buffer_size: 1000
+        buffer_size: 10000
       # Proxy options:
       # - type: "http" and url: "http://proxy.example:8080"
       # - type: "socks5" and url: "socks5://proxy.example:1080"
@@ -43,9 +43,7 @@ bifrost:
           models:
             - "*"
           use_for_batch_api: true
-          aliases: {
-            gpt-4o-mini: "gpt-4o-mini-2024-07-18"
-          }
+          aliases: { gpt-4o-mini: "gpt-4o-mini-2024-07-18" }
           # Optional key-scoped config blocks (provider specific)
           # azure_key_config:
           #   endpoint: "https://your-resource.openai.azure.com"
@@ -74,7 +72,7 @@ bifrost:
       #   base_provider_type: "anthropic"
       # Per-beta-header support overrides (true/false). Applicable for Anthropic only.
       # beta_header_overrides:
-        # output-128k-2025-02-19: true
+      # output-128k-2025-02-19: true
       keys:
         - name: "anthropic-key"
           value: "env.ANTHROPIC_API_KEY"
