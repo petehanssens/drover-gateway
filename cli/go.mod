@@ -1,4 +1,4 @@
-module github.com/maximhq/bifrost/cli
+module github.com/petehanssens/drover-gateway/cli
 
 go 1.26.2
 

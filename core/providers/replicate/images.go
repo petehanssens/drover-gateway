@@ -3,8 +3,8 @@ package replicate
 import (
 	"strings"
 
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // modelInputImageFieldMap maps model identifiers to their input image field names.

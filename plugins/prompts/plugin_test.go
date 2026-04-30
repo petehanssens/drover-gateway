@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/maximhq/bifrost/core/schemas"
-	tables "github.com/maximhq/bifrost/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	tables "github.com/petehanssens/drover-gateway/framework/configstore/tables"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

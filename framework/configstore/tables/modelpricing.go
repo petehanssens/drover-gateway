@@ -1,6 +1,6 @@
 package tables
 
-import "github.com/maximhq/bifrost/core/schemas"
+import "github.com/petehanssens/drover-gateway/core/schemas"
 
 // TableModelPricing represents pricing information for AI models
 type TableModelPricing struct {

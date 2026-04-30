@@ -5,16 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/mcp"
-	"github.com/maximhq/bifrost/core/mcp/codemode/starlark"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/mcp"
+	"github.com/petehanssens/drover-gateway/core/mcp/codemode/starlark"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -54,6 +55,14 @@ func InitMCPServerPaths(t *testing.T) {
 	mcpServerPaths.ParallelTestServer = filepath.Join(examplesRoot, "mcps", "parallel-test-server", "bin", "parallel-test-server")
 	mcpServerPaths.ErrorTestServer = filepath.Join(examplesRoot, "mcps", "error-test-server", "bin", "error-test-server")
 
+	ensureNodeMCPServerDist(t, filepath.Join(examplesRoot, "mcps", "temperature"), mcpServerPaths.TemperatureServer)
+	ensureNodeMCPServerDist(t, filepath.Join(examplesRoot, "mcps", "test-tools-server"), filepath.Join(examplesRoot, "mcps", "test-tools-server", "dist", "index.js"))
+
+	ensureGoMCPServerBinary(t, filepath.Join(examplesRoot, "mcps", "go-test-server"), mcpServerPaths.GoTestServer)
+	ensureGoMCPServerBinary(t, filepath.Join(examplesRoot, "mcps", "edge-case-server"), mcpServerPaths.EdgeCaseServer)
+	ensureGoMCPServerBinary(t, filepath.Join(examplesRoot, "mcps", "parallel-test-server"), mcpServerPaths.ParallelTestServer)
+	ensureGoMCPServerBinary(t, filepath.Join(examplesRoot, "mcps", "error-test-server"), mcpServerPaths.ErrorTestServer)
+
 	t.Logf("Initialized MCP server paths:")
 	t.Logf("  - Bifrost Root: %s", mcpServerPaths.BifrostRoot)
 	t.Logf("  - Examples Root: %s", mcpServerPaths.ExamplesRoot)
@@ -62,6 +71,49 @@ func InitMCPServerPaths(t *testing.T) {
 	t.Logf("  - EdgeCase: %s", mcpServerPaths.EdgeCaseServer)
 	t.Logf("  - ParallelTest: %s", mcpServerPaths.ParallelTestServer)
 	t.Logf("  - ErrorTest: %s", mcpServerPaths.ErrorTestServer)
+}
+
+func ensureGoMCPServerBinary(t *testing.T, serverDir string, binPath string) {
+	t.Helper()
+
+	if _, err := os.Stat(binPath); err == nil {
+		return
+	}
+
+	if err := os.MkdirAll(filepath.Dir(binPath), 0o755); err != nil {
+		t.Fatalf("failed to create bin dir for %s: %v", binPath, err)
+	}
+
+	cmd := exec.Command("go", "build", "-o", binPath, ".")
+	cmd.Dir = serverDir
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("failed to build MCP server binary (%s): %v\n%s", serverDir, err, string(out))
+	}
+}
+
+func ensureNodeMCPServerDist(t *testing.T, serverDir string, entrypointPath string) {
+	t.Helper()
+
+	if _, err := os.Stat(entrypointPath); err == nil {
+		return
+	}
+
+	cmd := exec.Command("npm", "install")
+	cmd.Dir = serverDir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("failed npm install for %s: %v\n%s", serverDir, err, string(out))
+	}
+
+	cmd = exec.Command("npm", "run", "build")
+	cmd.Dir = serverDir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("failed npm run build for %s: %v\n%s", serverDir, err, string(out))
+	}
+
+	if _, err := os.Stat(entrypointPath); err != nil {
+		t.Fatalf("expected node dist entrypoint to exist at %s after build: %v", entrypointPath, err)
+	}
 }
 
 // =============================================================================
@@ -1065,7 +1117,7 @@ func GetBifrostRoot(t *testing.T) string {
 	cwd, err := os.Getwd()
 	require.NoError(t, err, "should get current working directory")
 
-	// Walk up the directory tree to find the bifrost root (contains go.mod with module github.com/maximhq/bifrost)
+	// Walk up the directory tree to find the bifrost root (contains go.mod with module github.com/petehanssens/drover-gateway)
 	dir := cwd
 	for {
 		goModPath := filepath.Join(dir, "go.mod")

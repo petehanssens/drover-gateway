@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToAnthropicTextCompletionRequest converts a Bifrost text completion request to Anthropic format

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // TestSTDIO_InitTimeout verifies that STDIO initialization fails gracefully

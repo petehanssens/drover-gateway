@@ -17,34 +17,34 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/google/uuid"
 
-	"github.com/maximhq/bifrost/core/keyselectors"
-	"github.com/maximhq/bifrost/core/mcp"
-	"github.com/maximhq/bifrost/core/mcp/codemode/starlark"
-	"github.com/maximhq/bifrost/core/providers/anthropic"
-	"github.com/maximhq/bifrost/core/providers/azure"
-	"github.com/maximhq/bifrost/core/providers/bedrock"
-	"github.com/maximhq/bifrost/core/providers/cerebras"
-	"github.com/maximhq/bifrost/core/providers/cohere"
-	"github.com/maximhq/bifrost/core/providers/elevenlabs"
-	"github.com/maximhq/bifrost/core/providers/fireworks"
-	"github.com/maximhq/bifrost/core/providers/gemini"
-	"github.com/maximhq/bifrost/core/providers/groq"
-	"github.com/maximhq/bifrost/core/providers/huggingface"
-	"github.com/maximhq/bifrost/core/providers/mistral"
-	"github.com/maximhq/bifrost/core/providers/nebius"
-	"github.com/maximhq/bifrost/core/providers/ollama"
-	"github.com/maximhq/bifrost/core/providers/openai"
-	"github.com/maximhq/bifrost/core/providers/openrouter"
-	"github.com/maximhq/bifrost/core/providers/parasail"
-	"github.com/maximhq/bifrost/core/providers/perplexity"
-	"github.com/maximhq/bifrost/core/providers/replicate"
-	"github.com/maximhq/bifrost/core/providers/runway"
-	"github.com/maximhq/bifrost/core/providers/sgl"
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/providers/vertex"
-	"github.com/maximhq/bifrost/core/providers/vllm"
-	"github.com/maximhq/bifrost/core/providers/xai"
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/keyselectors"
+	"github.com/petehanssens/drover-gateway/core/mcp"
+	"github.com/petehanssens/drover-gateway/core/mcp/codemode/starlark"
+	"github.com/petehanssens/drover-gateway/core/providers/anthropic"
+	"github.com/petehanssens/drover-gateway/core/providers/azure"
+	"github.com/petehanssens/drover-gateway/core/providers/bedrock"
+	"github.com/petehanssens/drover-gateway/core/providers/cerebras"
+	"github.com/petehanssens/drover-gateway/core/providers/cohere"
+	"github.com/petehanssens/drover-gateway/core/providers/elevenlabs"
+	"github.com/petehanssens/drover-gateway/core/providers/fireworks"
+	"github.com/petehanssens/drover-gateway/core/providers/gemini"
+	"github.com/petehanssens/drover-gateway/core/providers/groq"
+	"github.com/petehanssens/drover-gateway/core/providers/huggingface"
+	"github.com/petehanssens/drover-gateway/core/providers/mistral"
+	"github.com/petehanssens/drover-gateway/core/providers/nebius"
+	"github.com/petehanssens/drover-gateway/core/providers/ollama"
+	"github.com/petehanssens/drover-gateway/core/providers/openai"
+	"github.com/petehanssens/drover-gateway/core/providers/openrouter"
+	"github.com/petehanssens/drover-gateway/core/providers/parasail"
+	"github.com/petehanssens/drover-gateway/core/providers/perplexity"
+	"github.com/petehanssens/drover-gateway/core/providers/replicate"
+	"github.com/petehanssens/drover-gateway/core/providers/runway"
+	"github.com/petehanssens/drover-gateway/core/providers/sgl"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/providers/vertex"
+	"github.com/petehanssens/drover-gateway/core/providers/vllm"
+	"github.com/petehanssens/drover-gateway/core/providers/xai"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/valyala/fasthttp"
 )
 
@@ -5538,7 +5538,10 @@ func (bifrost *Bifrost) requestWorker(provider schemas.Provider, config *schemas
 
 		// Step 1: compute effective value for each flag (provider config ← per-request override).
 		effectiveSendBackReq := config.SendBackRawRequest
-		allowRawOverride, _ := req.Context.Value(schemas.BifrostContextKeyAllowPerRequestRawOverride).(bool)
+		allowRawOverride := true
+		if v, ok := req.Context.Value(schemas.BifrostContextKeyAllowPerRequestRawOverride).(bool); ok {
+			allowRawOverride = v
+		}
 		if allowRawOverride {
 			if override, ok := req.Context.Value(schemas.BifrostContextKeySendBackRawRequest).(bool); ok {
 				effectiveSendBackReq = override
@@ -5551,7 +5554,10 @@ func (bifrost *Bifrost) requestWorker(provider schemas.Provider, config *schemas
 			}
 		}
 		effectiveStore := config.StoreRawRequestResponse
-		allowStorageOverride, _ := req.Context.Value(schemas.BifrostContextKeyAllowPerRequestStorageOverride).(bool)
+		allowStorageOverride := true
+		if v, ok := req.Context.Value(schemas.BifrostContextKeyAllowPerRequestStorageOverride).(bool); ok {
+			allowStorageOverride = v
+		}
 		if allowStorageOverride {
 			if override, ok := req.Context.Value(schemas.BifrostContextKeyStoreRawRequestResponse).(bool); ok {
 				effectiveStore = override
@@ -5921,9 +5927,16 @@ func (bifrost *Bifrost) handleProviderRequest(provider schemas.Provider, config 
 			customProviderConfig = config.CustomProviderConfig
 		}
 		if bifrostError := providerUtils.CheckOperationAllowed(provider.GetProviderKey(), customProviderConfig, schemas.OCRRequest); bifrostError != nil {
+			originalModelRequested := ""
 			if req.BifrostRequest.OCRRequest != nil {
-				bifrostError.ExtraFields.OriginalModelRequested = req.BifrostRequest.OCRRequest.Model
+				originalModelRequested = req.BifrostRequest.OCRRequest.Model
 			}
+			bifrostError.PopulateExtraFields(
+				schemas.OCRRequest,
+				providerUtils.GetProviderName(provider.GetProviderKey(), customProviderConfig),
+				originalModelRequested,
+				"",
+			)
 			return nil, bifrostError
 		}
 		ocrResponse, bifrostError := provider.OCR(req.Context, key, req.BifrostRequest.OCRRequest)

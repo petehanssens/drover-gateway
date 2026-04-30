@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -182,6 +182,7 @@ func (ts *RedisTestSetup) cleanupTestData(t *testing.T) {
 // ============================================================================
 
 func TestRedisConfig_Validation(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	logger := bifrost.NewDefaultLogger(schemas.LogLevelInfo)
 	ctx := context.Background()
 
@@ -266,7 +267,15 @@ func readTestCACert(t *testing.T) string {
 	return string(data)
 }
 
+func requireVectorstoreIntegration(t *testing.T) {
+	t.Helper()
+	if strings.TrimSpace(os.Getenv("BIFROST_RUN_VECTORSTORE_INTEGRATION_TESTS")) != "1" {
+		t.Skip("Skipping vectorstore integration tests (set BIFROST_RUN_VECTORSTORE_INTEGRATION_TESTS=1 to enable)")
+	}
+}
+
 func TestNewRedisStore_ConfiguresStandaloneTLSClient(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	logger := bifrost.NewDefaultLogger(schemas.LogLevelInfo)
 
 	store, err := newRedisStore(context.Background(), RedisConfig{
@@ -285,6 +294,7 @@ func TestNewRedisStore_ConfiguresStandaloneTLSClient(t *testing.T) {
 }
 
 func TestNewRedisStore_ConfiguresStandaloneTLSClientWithCACert(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	logger := bifrost.NewDefaultLogger(schemas.LogLevelInfo)
 
 	store, err := newRedisStore(context.Background(), RedisConfig{
@@ -303,6 +313,7 @@ func TestNewRedisStore_ConfiguresStandaloneTLSClientWithCACert(t *testing.T) {
 }
 
 func TestNewRedisStore_ConfiguresClusterTLSClient(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	logger := bifrost.NewDefaultLogger(schemas.LogLevelInfo)
 
 	store, err := newRedisStore(context.Background(), RedisConfig{
@@ -321,6 +332,7 @@ func TestNewRedisStore_ConfiguresClusterTLSClient(t *testing.T) {
 }
 
 func TestNewRedisStore_ConfiguresClusterTLSClientWithCACert(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	logger := bifrost.NewDefaultLogger(schemas.LogLevelInfo)
 
 	store, err := newRedisStore(context.Background(), RedisConfig{
@@ -1042,6 +1054,7 @@ func TestMatchesQueriesForScan(t *testing.T) {
 // ============================================================================
 
 func TestRedisStore_Integration(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -1126,6 +1139,7 @@ func TestRedisStore_Integration(t *testing.T) {
 }
 
 func TestRedisStore_FilteringScenarios(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -1291,6 +1305,7 @@ func TestRedisStore_FilteringScenarios(t *testing.T) {
 }
 
 func TestRedisStore_VectorSearch(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -1381,6 +1396,7 @@ func TestRedisStore_VectorSearch(t *testing.T) {
 }
 
 func TestRedisStore_CompleteUseCases(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -1510,6 +1526,7 @@ func TestRedisStore_CompleteUseCases(t *testing.T) {
 }
 
 func TestRedisStore_DeleteOperations(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -1678,6 +1695,7 @@ func TestRedisStore_InterfaceCompliance(t *testing.T) {
 }
 
 func TestVectorStoreFactory_Redis(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -1710,6 +1728,7 @@ func TestVectorStoreFactory_Redis(t *testing.T) {
 // ============================================================================
 
 func TestRedisStore_ErrorHandling(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -1743,6 +1762,7 @@ func TestRedisStore_ErrorHandling(t *testing.T) {
 }
 
 func TestRedisStore_NamespaceDimensionHandling(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}

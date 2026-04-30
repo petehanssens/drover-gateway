@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/bytedance/sonic"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToHuggingFaceEmbeddingRequest converts a Bifrost embedding request to HuggingFace format

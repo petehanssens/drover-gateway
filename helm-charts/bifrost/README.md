@@ -2,7 +2,7 @@
 
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/bifrost)](https://artifacthub.io/packages/helm/bifrost/bifrost)
 
-Official Helm charts for deploying [Bifrost](https://github.com/maximhq/bifrost) - a high-performance AI gateway with unified interface for multiple providers.
+Official Helm charts for deploying [Bifrost](https://github.com/petehanssens/drover-gateway) - a high-performance AI gateway with unified interface for multiple providers.
 
 **Latest Version:** 2.1.10
 
@@ -305,7 +305,7 @@ helm install bifrost bifrost/bifrost -f my-values.yaml
 
 ```bash
 # Clone the repository
-git clone https://github.com/maximhq/bifrost.git
+git clone https://github.com/petehanssens/drover-gateway.git
 cd bifrost/helm-charts
 
 # Install from local chart
@@ -845,7 +845,7 @@ kubectl get secret bifrost -o yaml
 ## Resources
 
 - [Bifrost Documentation](https://docs.getbifrost.ai)
-- [GitHub Repository](https://github.com/maximhq/bifrost)
+- [GitHub Repository](https://github.com/petehanssens/drover-gateway)
 - [Docker Hub](https://hub.docker.com/r/maximhq/bifrost)
 - [Discord Community](https://discord.gg/exN5KAydbU)
 

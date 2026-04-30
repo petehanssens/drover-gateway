@@ -10,8 +10,8 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/google/uuid"
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // directCacheNamespace is a fixed UUID v5 namespace used for deterministic direct cache ID generation.

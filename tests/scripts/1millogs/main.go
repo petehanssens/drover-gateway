@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/logstore"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/logstore"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

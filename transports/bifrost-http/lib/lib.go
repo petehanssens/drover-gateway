@@ -4,7 +4,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/valyala/fasthttp"
 )
 

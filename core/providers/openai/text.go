@@ -3,8 +3,8 @@ package openai
 import (
 	"maps"
 
-	"github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToOpenAITextCompletionRequest converts a Bifrost text completion request to OpenAI format

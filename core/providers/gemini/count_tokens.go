@@ -3,7 +3,7 @@ package gemini
 import (
 	"strings"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToBifrostCountTokensResponse converts a Gemini count tokens response to Bifrost format.

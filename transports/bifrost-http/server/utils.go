@@ -8,7 +8,7 @@ import (
 	"runtime"
 
 	"github.com/bytedance/sonic"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // GetDefaultConfigDir returns the OS-specific default configuration directory for Bifrost.

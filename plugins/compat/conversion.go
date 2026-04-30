@@ -1,7 +1,7 @@
 package compat
 
 import (
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // applyParameterConversion rewrites request fields in place for provider compatibility.

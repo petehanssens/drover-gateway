@@ -13,11 +13,11 @@ import (
 	"github.com/fasthttp/router"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/configstore/tables"
-	"github.com/maximhq/bifrost/plugins/governance"
-	"github.com/maximhq/bifrost/transports/bifrost-http/lib"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/plugins/governance"
+	"github.com/petehanssens/drover-gateway/transports/bifrost-http/lib"
 	"github.com/valyala/fasthttp"
 )
 

@@ -20,11 +20,11 @@ import (
 	"golang.org/x/oauth2/google"
 
 	"github.com/bytedance/sonic"
-	"github.com/maximhq/bifrost/core/providers/anthropic"
-	"github.com/maximhq/bifrost/core/providers/gemini"
-	"github.com/maximhq/bifrost/core/providers/openai"
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/providers/anthropic"
+	"github.com/petehanssens/drover-gateway/core/providers/gemini"
+	"github.com/petehanssens/drover-gateway/core/providers/openai"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 type VertexError struct {

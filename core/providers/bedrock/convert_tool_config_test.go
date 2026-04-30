@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // TestConvertToolConfig_DropsServerToolsOnBedrock locks in the bug fix from

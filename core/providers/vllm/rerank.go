@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToVLLMRerankRequest converts a Bifrost rerank request to vLLM format.

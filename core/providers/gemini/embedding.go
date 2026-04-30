@@ -1,8 +1,8 @@
 package gemini
 
 import (
-	"github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToGeminiEmbeddingRequest converts a BifrostRequest with embedding input to Gemini's batch embedding request format

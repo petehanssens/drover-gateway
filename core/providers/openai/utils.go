@@ -3,7 +3,7 @@ package openai
 import (
 	"strings"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // CustomResponseHandler is a function that produces a Bifrost response from a Bifrost request.

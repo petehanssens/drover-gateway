@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/maximhq/bifrost/core/internal/llmtests"
+	"github.com/petehanssens/drover-gateway/core/internal/llmtests"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 func TestSGL(t *testing.T) {

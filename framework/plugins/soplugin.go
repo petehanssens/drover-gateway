@@ -4,7 +4,7 @@ import (
 	"context"
 	"plugin"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // DynamicPlugin is a generic dynamic plugin that can implement any combination of plugin interfaces

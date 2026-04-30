@@ -25,9 +25,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/bytedance/sonic"
 	"github.com/google/uuid"
-	"github.com/maximhq/bifrost/core/providers/anthropic"
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/providers/anthropic"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // BedrockProvider implements the Provider interface for AWS Bedrock.

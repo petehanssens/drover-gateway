@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/configstore"
-	configstoreTables "github.com/maximhq/bifrost/framework/configstore/tables"
-	"github.com/maximhq/bifrost/plugins/governance"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/configstore"
+	configstoreTables "github.com/petehanssens/drover-gateway/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/plugins/governance"
 	"github.com/valyala/fasthttp"
 )
 

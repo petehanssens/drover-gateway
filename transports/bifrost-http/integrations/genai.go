@@ -12,13 +12,13 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	bifrost "github.com/maximhq/bifrost/core"
+	bifrost "github.com/petehanssens/drover-gateway/core"
 
-	"github.com/maximhq/bifrost/core/providers/gemini"
-	"github.com/maximhq/bifrost/core/providers/vertex"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/providers/gemini"
+	"github.com/petehanssens/drover-gateway/core/providers/vertex"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 
-	"github.com/maximhq/bifrost/transports/bifrost-http/lib"
+	"github.com/petehanssens/drover-gateway/transports/bifrost-http/lib"
 	"github.com/valyala/fasthttp"
 )
 

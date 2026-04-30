@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/maximhq/bifrost/cli/internal/app"
-	"github.com/maximhq/bifrost/cli/internal/update"
+	"github.com/petehanssens/drover-gateway/cli/internal/app"
+	"github.com/petehanssens/drover-gateway/cli/internal/update"
 )
 
 var (

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	ws "github.com/fasthttp/websocket"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // UpstreamConn wraps a WebSocket connection to an upstream provider.

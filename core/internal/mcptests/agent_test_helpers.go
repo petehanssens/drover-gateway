@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/maximhq/bifrost/core/mcp"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/mcp"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

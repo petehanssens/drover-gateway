@@ -13,11 +13,11 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/fasthttp/router"
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/configstore/tables"
-	"github.com/maximhq/bifrost/framework/logstore"
-	"github.com/maximhq/bifrost/plugins/logging"
-	"github.com/maximhq/bifrost/transports/bifrost-http/lib"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/framework/logstore"
+	"github.com/petehanssens/drover-gateway/plugins/logging"
+	"github.com/petehanssens/drover-gateway/transports/bifrost-http/lib"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/sync/errgroup"
 )

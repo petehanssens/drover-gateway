@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
-	"github.com/maximhq/bifrost/core/schemas"
-	configstoreTables "github.com/maximhq/bifrost/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	configstoreTables "github.com/petehanssens/drover-gateway/framework/configstore/tables"
 )
 
 // Default sync interval and config key

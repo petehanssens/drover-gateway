@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/configstore/tables"
-	"github.com/maximhq/bifrost/framework/logstore"
-	"github.com/maximhq/bifrost/framework/vectorstore"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/framework/logstore"
+	"github.com/petehanssens/drover-gateway/framework/vectorstore"
 	"gorm.io/gorm"
 )
 

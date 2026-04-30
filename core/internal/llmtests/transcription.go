@@ -11,8 +11,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // RunTranscriptionTest executes the transcription test scenario

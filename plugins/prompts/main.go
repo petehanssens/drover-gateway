@@ -13,9 +13,9 @@ import (
 	"strings"
 	"sync"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
-	configstoreTables "github.com/maximhq/bifrost/framework/configstore/tables"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	configstoreTables "github.com/petehanssens/drover-gateway/framework/configstore/tables"
 )
 
 const (

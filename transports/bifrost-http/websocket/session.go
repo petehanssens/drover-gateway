@@ -7,7 +7,7 @@ import (
 
 	ws "github.com/fasthttp/websocket"
 	"github.com/google/uuid"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // Session tracks the binding between a client WebSocket connection and its upstream state.

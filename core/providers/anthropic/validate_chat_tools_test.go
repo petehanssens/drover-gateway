@@ -3,7 +3,7 @@ package anthropic
 import (
 	"testing"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // TestValidateChatToolsForProvider locks in the partition:

@@ -9,8 +9,8 @@ import (
 	"os"
 	"testing"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // RunImageVariationTest executes the end-to-end image variation test (non-streaming)

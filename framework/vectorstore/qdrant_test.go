@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -317,6 +317,7 @@ func TestBuildQdrantFilter(t *testing.T) {
 }
 
 func TestQdrantStore_Integration(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -347,6 +348,7 @@ func TestQdrantStore_Integration(t *testing.T) {
 }
 
 func TestQdrantStore_Filtering(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -379,6 +381,7 @@ func TestQdrantStore_Filtering(t *testing.T) {
 }
 
 func TestQdrantStore_VectorSearch(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -443,6 +446,7 @@ func TestVectorStoreFactory_Qdrant(t *testing.T) {
 }
 
 func TestQdrantStore_DimensionHandling(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -477,6 +481,7 @@ func TestQdrantStore_DimensionHandling(t *testing.T) {
 }
 
 func TestQdrantStore_ErrorHandling(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}

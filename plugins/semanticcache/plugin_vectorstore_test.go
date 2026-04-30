@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/vectorstore"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/vectorstore"
 )
 
 // requiresVectors returns true if the vector store requires vectors for storage.
@@ -21,6 +21,13 @@ func requiresVectors(storeType vectorstore.VectorStoreType) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func requireVectorstoreIntegration(t *testing.T) {
+	t.Helper()
+	if strings.TrimSpace(os.Getenv("BIFROST_RUN_VECTORSTORE_INTEGRATION_TESTS")) != "1" {
+		t.Skip("Skipping vectorstore integration tests (set BIFROST_RUN_VECTORSTORE_INTEGRATION_TESTS=1 to enable)")
 	}
 }
 
@@ -60,6 +67,7 @@ func getDefaultTestConfig() *Config {
 
 // TestSemanticCache_AllVectorStores_BasicFlow tests the basic cache flow across all vector stores
 func TestSemanticCache_AllVectorStores_BasicFlow(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	for _, tc := range getVectorStoreTestCases() {
 		t.Run(tc.Name, func(t *testing.T) {
 			skipIfNoAPIKey(t, tc.StoreType)
@@ -170,6 +178,7 @@ func TestSemanticCache_AllVectorStores_BasicFlow(t *testing.T) {
 
 // TestSemanticCache_AllVectorStores_DirectHashMatch tests direct hash matching across all vector stores
 func TestSemanticCache_AllVectorStores_DirectHashMatch(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	for _, tc := range getVectorStoreTestCases() {
 		t.Run(tc.Name, func(t *testing.T) {
 			skipIfNoAPIKey(t, tc.StoreType)
@@ -212,6 +221,7 @@ func TestSemanticCache_AllVectorStores_DirectHashMatch(t *testing.T) {
 
 // TestSemanticCache_AllVectorStores_NamespaceIsolation tests that different cache keys are isolated
 func TestSemanticCache_AllVectorStores_NamespaceIsolation(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	for _, tc := range getVectorStoreTestCases() {
 		t.Run(tc.Name, func(t *testing.T) {
 			skipIfNoAPIKey(t, tc.StoreType)
@@ -267,6 +277,7 @@ func TestSemanticCache_AllVectorStores_NamespaceIsolation(t *testing.T) {
 
 // TestSemanticCache_AllVectorStores_ParameterFiltering tests that different parameters don't share cache
 func TestSemanticCache_AllVectorStores_ParameterFiltering(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	for _, tc := range getVectorStoreTestCases() {
 		t.Run(tc.Name, func(t *testing.T) {
 			skipIfNoAPIKey(t, tc.StoreType)
@@ -381,6 +392,7 @@ func TestSemanticCache_AllVectorStores_ParameterFiltering(t *testing.T) {
 
 // TestSemanticCache_AllVectorStores_EmbeddingRequest tests embedding request caching across all vector stores
 func TestSemanticCache_AllVectorStores_EmbeddingRequest(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	for _, tc := range getVectorStoreTestCases() {
 		t.Run(tc.Name, func(t *testing.T) {
 			skipIfNoAPIKey(t, tc.StoreType)

@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // RunSimpleChatTest executes the simple chat test scenario using dual API testing framework

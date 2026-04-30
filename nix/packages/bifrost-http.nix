@@ -17,15 +17,15 @@ let
     if [ -f transports/go.mod ]; then
       cat >> transports/go.mod <<'EOF'
 
-    replace github.com/maximhq/bifrost/core => ../core
-    replace github.com/maximhq/bifrost/framework => ../framework
-    replace github.com/maximhq/bifrost/plugins/governance => ../plugins/governance
-    replace github.com/maximhq/bifrost/plugins/compat => ../plugins/compat
-    replace github.com/maximhq/bifrost/plugins/logging => ../plugins/logging
-    replace github.com/maximhq/bifrost/plugins/maxim => ../plugins/maxim
-    replace github.com/maximhq/bifrost/plugins/otel => ../plugins/otel
-    replace github.com/maximhq/bifrost/plugins/semanticcache => ../plugins/semanticcache
-    replace github.com/maximhq/bifrost/plugins/telemetry => ../plugins/telemetry
+    replace github.com/petehanssens/drover-gateway/core => ../core
+    replace github.com/petehanssens/drover-gateway/framework => ../framework
+    replace github.com/petehanssens/drover-gateway/plugins/governance => ../plugins/governance
+    replace github.com/petehanssens/drover-gateway/plugins/compat => ../plugins/compat
+    replace github.com/petehanssens/drover-gateway/plugins/logging => ../plugins/logging
+    replace github.com/petehanssens/drover-gateway/plugins/maxim => ../plugins/maxim
+    replace github.com/petehanssens/drover-gateway/plugins/otel => ../plugins/otel
+    replace github.com/petehanssens/drover-gateway/plugins/semanticcache => ../plugins/semanticcache
+    replace github.com/petehanssens/drover-gateway/plugins/telemetry => ../plugins/telemetry
     EOF
     fi
   '';
@@ -77,7 +77,7 @@ buildGoModule {
   meta = {
     mainProgram = "bifrost-http";
     description = "Bifrost HTTP gateway";
-    homepage = "https://github.com/maximhq/bifrost";
+    homepage = "https://github.com/petehanssens/drover-gateway";
     license = lib.licenses.asl20;
   };
 }

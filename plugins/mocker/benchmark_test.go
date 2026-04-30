@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"testing"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // BenchmarkMockerPlugin_PreHook_SimpleRule benchmarks simple rule matching

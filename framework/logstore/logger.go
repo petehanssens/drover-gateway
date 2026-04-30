@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	gormLibLogger "gorm.io/gorm/logger"
 )
 

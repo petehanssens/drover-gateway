@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 const DefaultModelParamsCacheSize = 2048

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/bytedance/sonic"
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
 )
 
 type Reference struct {

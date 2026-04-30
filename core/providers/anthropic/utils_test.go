@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 func TestExtractTypesFromValue(t *testing.T) {

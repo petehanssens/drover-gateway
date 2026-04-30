@@ -1,8 +1,8 @@
 package openai
 
 import (
-	"github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToBifrostSpeechRequest converts an OpenAI speech request to Bifrost format

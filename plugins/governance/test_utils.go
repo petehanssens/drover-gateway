@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
-	configstoreTables "github.com/maximhq/bifrost/framework/configstore/tables"
-	"github.com/maximhq/bifrost/framework/modelcatalog"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	configstoreTables "github.com/petehanssens/drover-gateway/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/framework/modelcatalog"
 	"github.com/stretchr/testify/assert"
 )
 

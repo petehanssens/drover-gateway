@@ -3,7 +3,7 @@ package llmtests
 import (
 	"testing"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 func TestCrossProviderScenarios(t *testing.T) {

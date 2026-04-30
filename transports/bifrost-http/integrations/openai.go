@@ -13,11 +13,11 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/google/uuid"
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/providers/openai"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/providers/openai"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 
-	"github.com/maximhq/bifrost/transports/bifrost-http/lib"
+	"github.com/petehanssens/drover-gateway/transports/bifrost-http/lib"
 	"github.com/valyala/fasthttp"
 )
 

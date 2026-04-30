@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToNebiusImageGenerationRequest converts a bifrost image generation request to nebius format.

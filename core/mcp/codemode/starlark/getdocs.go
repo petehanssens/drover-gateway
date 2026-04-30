@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"strings"
 
-	codemcp "github.com/maximhq/bifrost/core/mcp"
-	"github.com/maximhq/bifrost/core/schemas"
+	codemcp "github.com/petehanssens/drover-gateway/core/mcp"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // createGetToolDocsTool creates the getToolDocs tool definition for code mode.

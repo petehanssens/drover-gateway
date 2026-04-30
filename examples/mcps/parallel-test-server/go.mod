@@ -1,4 +1,4 @@
-module github.com/maximhq/bifrost/examples/mcps/parallel-test-server
+module github.com/petehanssens/drover-gateway/examples/mcps/parallel-test-server
 
 go 1.26.2
 

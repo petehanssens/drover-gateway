@@ -1,10 +1,10 @@
-module github.com/maximhq/bifrost/examples/plugins/llm-only
+module github.com/petehanssens/drover-gateway/examples/plugins/llm-only
 
 go 1.26.2
 
-replace github.com/maximhq/bifrost/core => ../../../core
+replace github.com/petehanssens/drover-gateway/core => ../../../core
 
-require github.com/maximhq/bifrost/core v0.0.0-00010101000000-000000000000
+require github.com/petehanssens/drover-gateway/core v0.0.0-00010101000000-000000000000
 
 require (
 	github.com/andybalholm/brotli v1.2.0 // indirect

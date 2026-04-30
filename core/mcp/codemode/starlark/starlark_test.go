@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	codemcp "github.com/maximhq/bifrost/core/mcp"
-	"github.com/maximhq/bifrost/core/schemas"
+	codemcp "github.com/petehanssens/drover-gateway/core/mcp"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"go.starlark.net/starlark"
 	"go.starlark.net/syntax"
 )

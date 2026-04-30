@@ -10,11 +10,11 @@ import (
 
 	"github.com/fasthttp/router"
 	ws "github.com/fasthttp/websocket"
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/transports/bifrost-http/integrations"
-	"github.com/maximhq/bifrost/transports/bifrost-http/lib"
-	bfws "github.com/maximhq/bifrost/transports/bifrost-http/websocket"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/transports/bifrost-http/integrations"
+	"github.com/petehanssens/drover-gateway/transports/bifrost-http/lib"
+	bfws "github.com/petehanssens/drover-gateway/transports/bifrost-http/websocket"
 	"github.com/valyala/fasthttp"
 )
 

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	bifrost "github.com/maximhq/bifrost/core"
+	bifrost "github.com/petehanssens/drover-gateway/core"
 )
 
 func TestUnmarshalJSON_DefaultCacheKey(t *testing.T) {

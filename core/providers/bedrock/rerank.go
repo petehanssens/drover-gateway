@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToBedrockRerankRequest converts a Bifrost rerank request into Bedrock Agent Runtime format.

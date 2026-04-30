@@ -1,10 +1,10 @@
-module github.com/maximhq/bifrost/tests/scripts/1millogs
+module github.com/petehanssens/drover-gateway/tests/scripts/1millogs
 
 go 1.26.2
 
 require (
-	github.com/maximhq/bifrost/core v1.4.18
-	github.com/maximhq/bifrost/framework v0.0.0
+	github.com/petehanssens/drover-gateway/core v1.4.18
+	github.com/petehanssens/drover-gateway/framework v0.0.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
@@ -86,6 +86,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/maximhq/bifrost/core => ../../../core
+replace github.com/petehanssens/drover-gateway/core => ../../../core
 
-replace github.com/maximhq/bifrost/framework => ../../../framework
+replace github.com/petehanssens/drover-gateway/framework => ../../../framework

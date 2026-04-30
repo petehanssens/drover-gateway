@@ -3,7 +3,7 @@ package semanticcache
 import (
 	"testing"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // TestTextNormalizationDirectCache tests that text normalization works correctly

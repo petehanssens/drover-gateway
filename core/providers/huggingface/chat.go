@@ -6,8 +6,8 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // sanitizeMessagesForHuggingFace removes unsupported ChatAssistantMessage fields

@@ -14,13 +14,13 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/fasthttp/router"
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/configstore"
-	"github.com/maximhq/bifrost/framework/configstore/tables"
-	"github.com/maximhq/bifrost/framework/modelcatalog"
-	governanceplugin "github.com/maximhq/bifrost/plugins/governance"
-	"github.com/maximhq/bifrost/transports/bifrost-http/lib"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/configstore"
+	"github.com/petehanssens/drover-gateway/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/framework/modelcatalog"
+	governanceplugin "github.com/petehanssens/drover-gateway/plugins/governance"
+	"github.com/petehanssens/drover-gateway/transports/bifrost-http/lib"
 	"github.com/valyala/fasthttp"
 )
 

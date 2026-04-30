@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 const (

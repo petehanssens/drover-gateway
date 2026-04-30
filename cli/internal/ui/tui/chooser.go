@@ -13,11 +13,11 @@ import (
 	textInput "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/maximhq/bifrost/cli/internal/ui/logo"
+	"github.com/petehanssens/drover-gateway/cli/internal/ui/logo"
 )
 
-const issuesURL = "https://github.com/maximhq/bifrost/issues/new"
-const repoURL = "https://github.com/maximhq/bifrost"
+const issuesURL = "https://github.com/petehanssens/drover-gateway/issues/new"
+const repoURL = "https://github.com/petehanssens/drover-gateway"
 const docsURL = "https://docs.getbifrost.ai/quickstart/cli/getting-started"
 
 // HarnessOption represents a selectable coding harness (e.g. Claude Code, Codex)

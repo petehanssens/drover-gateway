@@ -12,11 +12,11 @@ import (
 	"unicode"
 
 	"github.com/google/uuid"
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/configstore/tables"
-	"github.com/maximhq/bifrost/framework/encrypt"
-	"github.com/maximhq/bifrost/framework/migrator"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/framework/encrypt"
+	"github.com/petehanssens/drover-gateway/framework/migrator"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

@@ -4,8 +4,8 @@ import (
 	"sort"
 
 	"github.com/bytedance/sonic"
-	"github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"gopkg.in/yaml.v3"
 )
 

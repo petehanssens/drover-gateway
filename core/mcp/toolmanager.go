@@ -13,8 +13,8 @@ import (
 	"github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/client/transport"
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/maximhq/bifrost/core/mcp/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/mcp/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ClientManager interface for accessing MCP clients and tools

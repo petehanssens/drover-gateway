@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 
 	"github.com/mark3labs/mcp-go/server"
 )

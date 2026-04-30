@@ -3,9 +3,9 @@ package lib
 import (
 	"testing"
 
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/configstore"
-	"github.com/maximhq/bifrost/plugins/semanticcache"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/configstore"
+	"github.com/petehanssens/drover-gateway/plugins/semanticcache"
 	"github.com/stretchr/testify/require"
 )
 

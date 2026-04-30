@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // --- isCompactionItem tests ---

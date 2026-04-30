@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )

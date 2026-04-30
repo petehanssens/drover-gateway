@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/maximhq/bifrost/framework/configstore/tables"
-	"github.com/maximhq/bifrost/framework/encrypt"
+	"github.com/petehanssens/drover-gateway/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/framework/encrypt"
 	"gorm.io/gorm"
 )
 

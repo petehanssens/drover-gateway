@@ -2,7 +2,7 @@ package replicate
 
 import (
 	"github.com/bytedance/sonic"
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // parseReplicateError parses Replicate API error response

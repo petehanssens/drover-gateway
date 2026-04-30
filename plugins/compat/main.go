@@ -5,8 +5,8 @@
 package compat
 
 import (
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/modelcatalog"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/modelcatalog"
 )
 
 const PluginName = "compat"

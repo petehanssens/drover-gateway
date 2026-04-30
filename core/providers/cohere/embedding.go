@@ -1,8 +1,8 @@
 package cohere
 
 import (
-	"github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToCohereEmbeddingRequest converts a Bifrost embedding request to Cohere format

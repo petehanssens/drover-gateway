@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // TokenRefreshWorker manages automatic token refresh for expiring OAuth tokens

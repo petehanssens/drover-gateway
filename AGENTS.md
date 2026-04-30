@@ -133,9 +133,9 @@ Bifrost is a **multi-module Go workspace**. Each module has its own `go.mod`:
 
 ```
 go.work
-├── core/go.mod              # github.com/maximhq/bifrost/core
-├── framework/go.mod         # github.com/maximhq/bifrost/framework
-├── transports/go.mod        # github.com/maximhq/bifrost/transports
+├── core/go.mod              # github.com/petehanssens/drover-gateway/core
+├── framework/go.mod         # github.com/petehanssens/drover-gateway/framework
+├── transports/go.mod        # github.com/petehanssens/drover-gateway/transports
 └── plugins/*/go.mod         # 9 plugin modules (governance, telemetry, logging, etc.)
 ```
 

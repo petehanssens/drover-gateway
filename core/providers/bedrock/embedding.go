@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToBedrockTitanEmbeddingRequest converts a Bifrost embedding request to Bedrock Titan format

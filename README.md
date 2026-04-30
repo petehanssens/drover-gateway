@@ -1,16 +1,18 @@
-# Bifrost AI Gateway
+# Drover Gateway
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/maximhq/bifrost/core)](https://goreportcard.com/report/github.com/maximhq/bifrost/core)
+[![Go Report Card](https://goreportcard.com/badge/github.com/petehanssens/drover-gateway/core)](https://goreportcard.com/report/github.com/petehanssens/drover-gateway/core)
 [![Discord badge](https://dcbadge.limes.pink/api/server/https://discord.gg/exN5KAydbU?style=flat)](https://discord.gg/exN5KAydbU)
-[![codecov](https://codecov.io/gh/maximhq/bifrost/branch/main/graph/badge.svg)](https://codecov.io/gh/maximhq/bifrost)
-![Docker Pulls](https://img.shields.io/docker/pulls/maximhq/bifrost)
+[![codecov](https://codecov.io/gh/petehanssens/drover-gateway/branch/main/graph/badge.svg)](https://codecov.io/gh/petehanssens/drover-gateway)
+![Docker Pulls](https://img.shields.io/docker/pulls/petehanssens/drover-gateway)
 [<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 95px; height: 21px;">](https://app.getpostman.com/run-collection/31642484-2ba0e658-4dcd-49f4-845a-0c7ed745b916?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D31642484-2ba0e658-4dcd-49f4-845a-0c7ed745b916%26entityType%3Dcollection%26workspaceId%3D63e853c8-9aec-477f-909c-7f02f543150e)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/bifrost)](https://artifacthub.io/packages/search?repo=bifrost)
 [![License](https://img.shields.io/github/license/maximhq/bifrost)](LICENSE)
 
+Forked from upstream Bifrost (`maximhq/bifrost`) and adapted for Drover.
+
 ## The fastest way to build AI applications that never go down
 
-Bifrost is a high-performance AI gateway that unifies access to 15+ providers (OpenAI, Anthropic, AWS Bedrock, Google Vertex, and more) through a single OpenAI-compatible API. Deploy in seconds with zero configuration and get automatic failover, load balancing, semantic caching, and enterprise-grade features.
+Drover Gateway is a high-performance AI gateway (based on Bifrost) that unifies access to multiple providers (OpenAI, Anthropic, AWS Bedrock, Google Vertex, and more) through a single OpenAI-compatible API. Deploy in seconds with zero configuration and get automatic failover, load balancing, semantic caching, and enterprise-grade features.
 
 ## Quick Start
 
@@ -18,14 +20,14 @@ Bifrost is a high-performance AI gateway that unifies access to 15+ providers (O
 
 **Go from zero to production-ready AI gateway in under a minute.**
 
-**Step 1:** Start Bifrost Gateway
+**Step 1:** Start Drover Gateway
 
 ```bash
 # Install and run locally
 npx -y @maximhq/bifrost
 
 # Or use Docker
-docker run -p 8080:8080 maximhq/bifrost
+docker run -p 8080:8080 petehanssens/drover-gateway
 ```
 
 **Step 2:** Configure via Web UI
@@ -164,7 +166,7 @@ docker run -p 8080:8080 -v $(pwd)/data:/app/data maximhq/bifrost
 **Best for:** Direct Go integration with maximum performance and control
 
 ```bash
-go get github.com/maximhq/bifrost/core
+go get github.com/petehanssens/drover-gateway/core
 ```
 
 **Features:** Native Go APIs, embedded deployment, custom middleware integration

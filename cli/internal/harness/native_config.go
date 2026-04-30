@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
-	"github.com/maximhq/bifrost/cli/internal/config"
+	"github.com/petehanssens/drover-gateway/cli/internal/config"
 )
 
 // claudePreLaunch forces Claude Code into its simpler terminal mode when

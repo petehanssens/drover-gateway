@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/kvstore"
-	"github.com/maximhq/bifrost/framework/logstore"
-	"github.com/maximhq/bifrost/transports/bifrost-http/lib"
-	bfws "github.com/maximhq/bifrost/transports/bifrost-http/websocket"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/kvstore"
+	"github.com/petehanssens/drover-gateway/framework/logstore"
+	"github.com/petehanssens/drover-gateway/transports/bifrost-http/lib"
+	bfws "github.com/petehanssens/drover-gateway/transports/bifrost-http/websocket"
 	"github.com/valyala/fasthttp"
 )
 

@@ -11,8 +11,8 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/valyala/fasthttp"
 
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // anthropicToolTypePrefixToFeature maps Anthropic server-tool type prefixes

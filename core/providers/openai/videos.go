@@ -6,9 +6,9 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/maximhq/bifrost/core/providers/utils"
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/providers/utils"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToOpenAIVideoGenerationRequest converts a Bifrost Video Request to OpenAI format

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	schemas "github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/modelcatalog"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/modelcatalog"
 )
 
 // buildCompleteImageFromImageStreamChunks builds a complete image generation response from accumulated chunks

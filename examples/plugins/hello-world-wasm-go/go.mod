@@ -1,8 +1,8 @@
-module github.com/maximhq/bifrost/examples/plugins/hello-world-wasm
+module github.com/petehanssens/drover-gateway/examples/plugins/hello-world-wasm
 
 go 1.26.2
 
-require github.com/maximhq/bifrost/core v1.4.17
+require github.com/petehanssens/drover-gateway/core v1.4.17
 
 
 require (

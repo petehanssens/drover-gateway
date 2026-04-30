@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/pinecone-io/go-pinecone/v5/pinecone"
 	"google.golang.org/protobuf/types/known/structpb"
 )

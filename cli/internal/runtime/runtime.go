@@ -8,8 +8,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/maximhq/bifrost/cli/internal/apis"
-	"github.com/maximhq/bifrost/cli/internal/harness"
+	"github.com/petehanssens/drover-gateway/cli/internal/apis"
+	"github.com/petehanssens/drover-gateway/cli/internal/harness"
 )
 
 // LaunchSpec holds the parameters needed to launch a harness subprocess.

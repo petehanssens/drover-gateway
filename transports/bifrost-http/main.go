@@ -62,11 +62,11 @@ import (
 
 	_ "go.uber.org/automaxprocs" // Automatically set GOMAXPROCS based on container cgroup limits
 
-	bifrost "github.com/maximhq/bifrost/core"
-	schemas "github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/transports/bifrost-http/handlers"
-	"github.com/maximhq/bifrost/transports/bifrost-http/lib"
-	bifrostServer "github.com/maximhq/bifrost/transports/bifrost-http/server"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/transports/bifrost-http/handlers"
+	"github.com/petehanssens/drover-gateway/transports/bifrost-http/lib"
+	bifrostServer "github.com/petehanssens/drover-gateway/transports/bifrost-http/server"
 )
 
 //go:embed all:ui
@@ -132,7 +132,7 @@ func main() {
 ║═══════════════════════════════════════════════════════════║
 ║                 The Fastest LLM Gateway                   ║
 ║═══════════════════════════════════════════════════════════║
-║             https://github.com/maximhq/bifrost            ║
+║             https://github.com/petehanssens/drover-gateway            ║
 ╚═══════════════════════════════════════════════════════════╝
 
 `, versionLine)

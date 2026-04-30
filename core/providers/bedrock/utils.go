@@ -8,9 +8,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/maximhq/bifrost/core/providers/anthropic"
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/providers/anthropic"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 var (

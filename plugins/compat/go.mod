@@ -1,10 +1,10 @@
-module github.com/maximhq/bifrost/plugins/compat
+module github.com/petehanssens/drover-gateway/plugins/compat
 
 go 1.26.2
 
 require (
-	github.com/maximhq/bifrost/core v1.5.6
-	github.com/maximhq/bifrost/framework v1.3.6
+	github.com/petehanssens/drover-gateway/core v1.5.6
+	github.com/petehanssens/drover-gateway/framework v1.3.6
 )
 
 require (

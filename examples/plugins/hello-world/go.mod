@@ -1,8 +1,8 @@
-module github.com/maximhq/bifrost/examples/plugins/hello-world
+module github.com/petehanssens/drover-gateway/examples/plugins/hello-world
 
 go 1.26.2
 
-require github.com/maximhq/bifrost/core v1.5.6
+require github.com/petehanssens/drover-gateway/core v1.5.6
 
 require (
 	github.com/andybalholm/brotli v1.2.0 // indirect

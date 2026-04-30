@@ -3,8 +3,8 @@ package semanticcache
 import (
 	"testing"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // TestExtractTextForEmbedding_NilContent verifies that extractTextForEmbedding

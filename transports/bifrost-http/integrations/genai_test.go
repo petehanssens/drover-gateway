@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/maximhq/bifrost/core/providers/gemini"
-	"github.com/maximhq/bifrost/core/providers/vertex"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/providers/gemini"
+	"github.com/petehanssens/drover-gateway/core/providers/vertex"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"

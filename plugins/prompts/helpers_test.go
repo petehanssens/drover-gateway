@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/maximhq/bifrost/core/schemas"
-	tables "github.com/maximhq/bifrost/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	tables "github.com/petehanssens/drover-gateway/framework/configstore/tables"
 )
 
 // ============================================================

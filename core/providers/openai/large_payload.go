@@ -8,8 +8,8 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/valyala/fasthttp"
 
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // largePayloadResult holds the lightweight metadata extracted from a large payload passthrough.

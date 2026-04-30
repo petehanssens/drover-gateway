@@ -9,8 +9,8 @@ import (
 	"time"
 
 	ws "github.com/fasthttp/websocket"
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // RunWebSocketResponsesTest dials the provider's native WebSocket Responses endpoint,

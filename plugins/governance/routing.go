@@ -8,8 +8,8 @@ import (
 	"sync"
 
 	"github.com/google/cel-go/cel"
-	"github.com/maximhq/bifrost/core/schemas"
-	configstoreTables "github.com/maximhq/bifrost/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	configstoreTables "github.com/petehanssens/drover-gateway/framework/configstore/tables"
 )
 
 // DefaultRoutingChainMaxDepth is the default maximum depth for routing rule chain evaluation.

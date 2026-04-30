@@ -1,7 +1,7 @@
 package perplexity
 
 import (
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToPerplexityResponsesRequest converts a BifrostResponsesRequest to PerplexityChatRequest

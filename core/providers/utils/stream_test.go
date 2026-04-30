@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 func TestCheckFirstStreamChunk_ErrorInFirstChunk(t *testing.T) {

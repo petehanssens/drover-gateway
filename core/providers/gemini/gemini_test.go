@@ -8,12 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/maximhq/bifrost/core/internal/llmtests"
-	"github.com/maximhq/bifrost/core/providers/gemini"
+	"github.com/petehanssens/drover-gateway/core/internal/llmtests"
+	"github.com/petehanssens/drover-gateway/core/providers/gemini"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 func TestGemini(t *testing.T) {

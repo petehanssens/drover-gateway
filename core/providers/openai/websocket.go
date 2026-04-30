@@ -3,7 +3,7 @@ package openai
 import (
 	"strings"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // SupportsWebSocketMode returns true since OpenAI natively supports the Responses API WebSocket Mode.

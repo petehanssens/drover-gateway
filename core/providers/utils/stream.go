@@ -3,7 +3,7 @@ package utils
 import (
 	"context"
 
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // CheckFirstStreamChunkForError reads the first chunk from a streaming channel to detect

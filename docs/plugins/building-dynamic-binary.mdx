@@ -410,7 +410,7 @@ docker run --rm \
          go build -buildmode=plugin -o myplugin.so main.go"
 ```
 
-See the [hello-world plugin Makefile](https://github.com/maximhq/bifrost/blob/main/examples/plugins/hello-world/Makefile) for a complete example.
+See the [hello-world plugin Makefile](https://github.com/petehanssens/drover-gateway/blob/main/examples/plugins/hello-world/Makefile) for a complete example.
 
 ## Verification
 
@@ -533,9 +533,9 @@ module github.com/example/my-plugin
 go 1.26.1
 
 require (
-    github.com/maximhq/bifrost/core v1.2.38
+    github.com/petehanssens/drover-gateway/core v1.2.38
     // Optional: Add framework for advanced features
-    // github.com/maximhq/bifrost/framework v1.1.48
+    // github.com/petehanssens/drover-gateway/framework v1.1.48
     
     // Add other dependencies as needed, matching versions from Bifrost's go.mod files
     // github.com/bytedance/sonic v1.14.1
@@ -697,9 +697,9 @@ Now that you have a dynamically linked Bifrost binary:
 
 1. **[Write your first plugin](./writing-plugin)** - Learn the plugin API and create custom functionality
 2. **[Deploy with plugins](../deployment-guides)** - Best practices for production deployments
-3. **[Example plugins](https://github.com/maximhq/bifrost/tree/main/examples/plugins)** - Study working examples
+3. **[Example plugins](https://github.com/petehanssens/drover-gateway/tree/main/examples/plugins)** - Study working examples
 
 <Note>
-For questions or issues with dynamic builds and plugins, visit our [GitHub Discussions](https://github.com/maximhq/bifrost/discussions) or [Discord community](https://discord.gg/exN5KAydbU).
+For questions or issues with dynamic builds and plugins, visit our [GitHub Discussions](https://github.com/petehanssens/drover-gateway/discussions) or [Discord community](https://discord.gg/exN5KAydbU).
 </Note>
 

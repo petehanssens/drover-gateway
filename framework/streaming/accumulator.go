@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	schemas "github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/modelcatalog"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/modelcatalog"
 )
 
 // getAccumulatorID extracts the ID for accumulator lookup from context.

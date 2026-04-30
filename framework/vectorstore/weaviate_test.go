@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/weaviate/weaviate-go-client/v5/weaviate/filters"
@@ -347,6 +347,7 @@ func TestConvertOperator(t *testing.T) {
 // ============================================================================
 
 func TestWeaviateStore_Integration(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -397,6 +398,7 @@ func TestWeaviateStore_Integration(t *testing.T) {
 }
 
 func TestWeaviateStore_FilteringScenarios(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -518,6 +520,7 @@ func TestWeaviateStore_FilteringScenarios(t *testing.T) {
 }
 
 func TestWeaviateStore_CompleteUseCases(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -738,6 +741,7 @@ func TestVectorStoreFactory_Weaviate(t *testing.T) {
 }
 
 func TestWeaviateStore_NamespaceDimensionHandling(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}

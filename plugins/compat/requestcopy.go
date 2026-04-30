@@ -4,7 +4,7 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 func cloneBifrostReq(req *schemas.BifrostRequest) *schemas.BifrostRequest {

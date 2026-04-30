@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // mapQualityToBedrock maps quality values to Bedrock format:

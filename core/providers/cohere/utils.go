@@ -3,7 +3,7 @@ package cohere
 import (
 	"encoding/json"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/tidwall/sjson"
 )
 

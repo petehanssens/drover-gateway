@@ -1,3 +1,3 @@
-module github.com/maximhq/bifrost/tests/scripts/migration-checker
+module github.com/petehanssens/drover-gateway/tests/scripts/migration-checker
 
 go 1.26.2

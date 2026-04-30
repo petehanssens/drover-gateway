@@ -191,7 +191,7 @@ setup_mocker() {
   else
     log_info "Cloning bifrost-benchmarking repository..."
     cd "${WORK_DIR}"
-    git clone --depth 1 https://github.com/maximhq/bifrost-benchmarking.git
+    git clone --depth 1 https://github.com/petehanssens/drover-gateway-benchmarking.git
   fi
 
   log_success "Mocker setup complete"

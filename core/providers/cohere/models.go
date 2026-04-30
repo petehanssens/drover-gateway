@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // CohereRerankRequest represents a Cohere rerank API request.

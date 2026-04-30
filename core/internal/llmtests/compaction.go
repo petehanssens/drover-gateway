@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/providers/anthropic"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/providers/anthropic"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // RunCompactionTest tests that context_management with compaction is correctly

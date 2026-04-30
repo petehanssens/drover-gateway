@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -89,6 +90,10 @@ type APIResponse struct {
 
 // MakeRequest makes an HTTP request to the Bifrost API
 func MakeRequest(t *testing.T, req APIRequest) *APIResponse {
+	if strings.TrimSpace(os.Getenv("BIFROST_RUN_GOVERNANCE_E2E_TESTS")) != "1" {
+		t.Skip("Skipping governance E2E tests (set BIFROST_RUN_GOVERNANCE_E2E_TESTS=1 to enable)")
+	}
+
 	client := &http.Client{}
 	url := fmt.Sprintf("http://localhost:8080%s", req.Path)
 

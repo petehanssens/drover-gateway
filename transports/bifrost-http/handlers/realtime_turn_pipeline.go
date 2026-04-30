@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
-	bfws "github.com/maximhq/bifrost/transports/bifrost-http/websocket"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	bfws "github.com/petehanssens/drover-gateway/transports/bifrost-http/websocket"
 )
 
 func newRealtimeTurnContext(

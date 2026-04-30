@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
-	configstoreTables "github.com/maximhq/bifrost/framework/configstore/tables"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	configstoreTables "github.com/petehanssens/drover-gateway/framework/configstore/tables"
 	"github.com/tidwall/gjson"
 	"gorm.io/gorm"
 )

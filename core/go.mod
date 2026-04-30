@@ -1,4 +1,4 @@
-module github.com/maximhq/bifrost/core
+module github.com/petehanssens/drover-gateway/core
 
 go 1.26.2
 

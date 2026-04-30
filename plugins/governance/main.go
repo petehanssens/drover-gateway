@@ -14,14 +14,14 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/google/uuid"
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/network"
-	"github.com/maximhq/bifrost/core/providers/gemini"
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/configstore"
-	configstoreTables "github.com/maximhq/bifrost/framework/configstore/tables"
-	"github.com/maximhq/bifrost/framework/mcpcatalog"
-	"github.com/maximhq/bifrost/framework/modelcatalog"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/network"
+	"github.com/petehanssens/drover-gateway/core/providers/gemini"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/configstore"
+	configstoreTables "github.com/petehanssens/drover-gateway/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/framework/mcpcatalog"
+	"github.com/petehanssens/drover-gateway/framework/modelcatalog"
 )
 
 // PluginName is the name of the governance plugin

@@ -6,7 +6,7 @@ icon: "golang"
 
 ## Overview
 
-This guide walks you through creating a native Go plugin for Bifrost using our [hello-world example](https://github.com/maximhq/bifrost/tree/main/examples/plugins/hello-world) as a reference. You'll learn how to structure your plugin, implement required functions, build the shared object, and integrate it with Bifrost.
+This guide walks you through creating a native Go plugin for Bifrost using our [hello-world example](https://github.com/petehanssens/drover-gateway/tree/main/examples/plugins/hello-world) as a reference. You'll learn how to structure your plugin, implement required functions, build the shared object, and integrate it with Bifrost.
 
 ## Prerequisites
 
@@ -45,7 +45,7 @@ go mod init github.com/yourusername/my-plugin
 Add Bifrost as a dependency:
 
 ```bash
-go get github.com/maximhq/bifrost/core@latest
+go get github.com/petehanssens/drover-gateway/core@latest
 ```
 
 Your `go.mod` should look like this:
@@ -55,7 +55,7 @@ module github.com/yourusername/my-plugin
 
 go 1.26.1
 
-require github.com/maximhq/bifrost/core v1.2.38
+require github.com/petehanssens/drover-gateway/core v1.2.38
 ```
 
 ## Step 2: Implement the Plugin Interface
@@ -70,7 +70,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // Init is called when the plugin is loaded
@@ -183,7 +183,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // Init is called when the plugin is loaded
@@ -295,7 +295,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // Init is called when the plugin is loaded
@@ -783,7 +783,7 @@ package main
 import (
 	"fmt"
 	"sync"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 var (
@@ -875,7 +875,7 @@ go build -buildmode=plugin -o plugin.so main.go
 
 **Why this happens**: Go's plugin system requires **exact version matching** for:
 - The Go compiler version
-- **All shared packages** (especially `github.com/maximhq/bifrost/core`)
+- **All shared packages** (especially `github.com/petehanssens/drover-gateway/core`)
 - **Transitive dependencies** (packages that your dependencies depend on)
 
 This is more strict than typical Go builds. Even if only one transitive dependency differs by a patch version, the plugin will fail to load.
@@ -890,13 +890,13 @@ Use `go version -m` to inspect the build info of both your plugin and the Bifros
 # Check what versions your plugin was built with:
 $ go version -m my-plugin.so
 my-plugin.so: go1.26.1
-  dep  github.com/maximhq/bifrost/core  v1.3.50
+  dep  github.com/petehanssens/drover-gateway/core  v1.3.50
   dep  github.com/valyala/fasthttp      v1.51.0
 
 # Check what versions Bifrost was built with:
 $ go version -m bifrost-http
 bifrost-http: go1.26.1
-  dep  github.com/maximhq/bifrost/core  v1.3.54   # <-- MISMATCH!
+  dep  github.com/petehanssens/drover-gateway/core  v1.3.54   # <-- MISMATCH!
   dep  github.com/valyala/fasthttp      v1.55.0   # <-- MISMATCH!
 ```
 
@@ -906,7 +906,7 @@ Notice that even though the Go version matches (`go1.26.1`), the **package versi
 
 ```bash
 # Update to match Bifrost's core version
-go get github.com/maximhq/bifrost/core@v1.3.54
+go get github.com/petehanssens/drover-gateway/core@v1.3.54
 go mod tidy
 
 # Rebuild the plugin
@@ -918,7 +918,7 @@ go build -buildmode=plugin -o my-plugin.so main.go
 ```bash
 # Confirm versions now match
 $ go version -m my-plugin.so | grep bifrost
-  dep  github.com/maximhq/bifrost/core  v1.3.54  # Now matches!
+  dep  github.com/petehanssens/drover-gateway/core  v1.3.54  # Now matches!
 ```
 
 <Tip>
@@ -941,26 +941,26 @@ $ go version -m my-plugin.so | grep bifrost
 
 The complete hello-world example is available in the Bifrost repository:
 
-- **Full Example**: [examples/plugins/hello-world](https://github.com/maximhq/bifrost/tree/main/examples/plugins/hello-world)
-- **main.go**: [Plugin implementation](https://github.com/maximhq/bifrost/blob/main/examples/plugins/hello-world/main.go)
-- **Makefile**: [Build configuration](https://github.com/maximhq/bifrost/blob/main/examples/plugins/hello-world/Makefile)
-- **go.mod**: [Dependencies](https://github.com/maximhq/bifrost/blob/main/examples/plugins/hello-world/go.mod)
+- **Full Example**: [examples/plugins/hello-world](https://github.com/petehanssens/drover-gateway/tree/main/examples/plugins/hello-world)
+- **main.go**: [Plugin implementation](https://github.com/petehanssens/drover-gateway/blob/main/examples/plugins/hello-world/main.go)
+- **Makefile**: [Build configuration](https://github.com/petehanssens/drover-gateway/blob/main/examples/plugins/hello-world/Makefile)
+- **go.mod**: [Dependencies](https://github.com/petehanssens/drover-gateway/blob/main/examples/plugins/hello-world/go.mod)
 
 ## Real-World Plugin Examples
 
 Explore production-ready plugins in the Bifrost repository:
 
-- **[Mocker Plugin](https://github.com/maximhq/bifrost/tree/main/plugins/mocker)** - Mock responses for testing
-- **[Logging Plugin](https://github.com/maximhq/bifrost/tree/main/plugins/logging)** - Advanced request/response logging
-- **[Semantic Cache Plugin](https://github.com/maximhq/bifrost/tree/main/plugins/semanticcache)** - Cache based on semantic similarity
-- **[Governance Plugin](https://github.com/maximhq/bifrost/tree/main/plugins/governance)** - Rate limiting and budget controls
-- **[JSON Parser Plugin](https://github.com/maximhq/bifrost/tree/main/plugins/jsonparser)** - Parse and validate JSON responses
+- **[Mocker Plugin](https://github.com/petehanssens/drover-gateway/tree/main/plugins/mocker)** - Mock responses for testing
+- **[Logging Plugin](https://github.com/petehanssens/drover-gateway/tree/main/plugins/logging)** - Advanced request/response logging
+- **[Semantic Cache Plugin](https://github.com/petehanssens/drover-gateway/tree/main/plugins/semanticcache)** - Cache based on semantic similarity
+- **[Governance Plugin](https://github.com/petehanssens/drover-gateway/tree/main/plugins/governance)** - Rate limiting and budget controls
+- **[JSON Parser Plugin](https://github.com/petehanssens/drover-gateway/tree/main/plugins/jsonparser)** - Parse and validate JSON responses
 
 ## Frequently Asked Questions
 
 ### Do I need to rebuild my plugin when upgrading Bifrost?
 
-**Yes, absolutely.** Plugins must be compiled against the exact same version of `github.com/maximhq/bifrost/core` that Bifrost is using. This is a fundamental requirement of Go's plugin system.
+**Yes, absolutely.** Plugins must be compiled against the exact same version of `github.com/petehanssens/drover-gateway/core` that Bifrost is using. This is a fundamental requirement of Go's plugin system.
 
 When you upgrade Bifrost, you must:
 1. Update your plugin's `go.mod` to use the matching core version
@@ -973,7 +973,7 @@ If upgrading from Bifrost v1.2.17 to v1.3.0:
 
 ```bash
 # Update your plugin dependency
-go get github.com/maximhq/bifrost/core@v1.3.0
+go get github.com/petehanssens/drover-gateway/core@v1.3.0
 go mod tidy
 
 # Rebuild the plugin
@@ -1021,7 +1021,7 @@ jobs:
         run: |
           cd plugins/my-plugin
           # Ensure plugin uses same core version as Bifrost
-          go get github.com/maximhq/bifrost/core@${{ env.BIFROST_VERSION }}
+          go get github.com/petehanssens/drover-gateway/core@${{ env.BIFROST_VERSION }}
           go mod tidy
           go build -buildmode=plugin -o my-plugin.so main.go
       
@@ -1096,7 +1096,7 @@ You'll see errors like:
 
 ```
 plugin: symbol Init not found in plugin github.com/you/plugin
-plugin was built with a different version of package github.com/maximhq/bifrost/core
+plugin was built with a different version of package github.com/petehanssens/drover-gateway/core
 ```
 
 **Solution:** Rebuild the plugin with the correct core version. See the [Version Mismatch Errors](#version-mismatch-errors) troubleshooting section for detailed diagnosis steps using `go version -m`.
@@ -1179,5 +1179,5 @@ go version -m my-plugin.so
 ## Need Help?
 
 - **Discord Community**: [Join our Discord](https://discord.gg/exN5KAydbU)
-- **GitHub Issues**: [Report bugs or request features](https://github.com/maximhq/bifrost/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/petehanssens/drover-gateway/issues)
 - **Documentation**: [Browse all docs](/)

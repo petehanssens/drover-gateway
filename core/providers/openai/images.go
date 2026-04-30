@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // ToOpenAIImageGenerationRequest converts a Bifrost Image Request to OpenAI format

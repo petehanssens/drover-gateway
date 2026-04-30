@@ -1,4 +1,4 @@
-module github.com/maximhq/bifrost/tools/schema-sync
+module github.com/petehanssens/drover-gateway/tools/schema-sync
 
 go 1.26.2
 

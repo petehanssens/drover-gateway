@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/internal/llmtests"
-	fireworksprovider "github.com/maximhq/bifrost/core/providers/fireworks"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/internal/llmtests"
+	fireworksprovider "github.com/petehanssens/drover-gateway/core/providers/fireworks"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 func TestFireworks(t *testing.T) {

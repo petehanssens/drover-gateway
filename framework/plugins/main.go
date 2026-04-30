@@ -2,7 +2,7 @@
 package plugins
 
 import (
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // PluginConfig is the generic configuration for any plugin type

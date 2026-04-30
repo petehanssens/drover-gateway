@@ -11,9 +11,9 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/mark3labs/mcp-go/mcp"
 
-	codemcp "github.com/maximhq/bifrost/core/mcp"
-	"github.com/maximhq/bifrost/core/mcp/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	codemcp "github.com/petehanssens/drover-gateway/core/mcp"
+	"github.com/petehanssens/drover-gateway/core/mcp/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"go.starlark.net/starlark"
 	"go.starlark.net/starlarkstruct"
 	"go.starlark.net/syntax"

@@ -1,4 +1,4 @@
-module github.com/maximhq/bifrost/examples/mcps/edge-case-server
+module github.com/petehanssens/drover-gateway/examples/mcps/edge-case-server
 
 go 1.26.2
 

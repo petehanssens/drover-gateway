@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	mistralprovider "github.com/maximhq/bifrost/core/providers/mistral"
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	mistralprovider "github.com/petehanssens/drover-gateway/core/providers/mistral"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

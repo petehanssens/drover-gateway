@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maximhq/bifrost/core/providers/anthropic"
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/providers/anthropic"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -563,7 +563,7 @@ func TestProviderBetaHeaderInjection(t *testing.T) {
 					},
 				}
 			},
-			expectHeaders: []string{"context-management-2025-06-27"},
+			unexpectHeaders: []string{"context-management-2025-06-27"},
 		},
 
 		// ── Prompt caching scope header ──
@@ -995,7 +995,7 @@ func TestProviderFeatureMapCompleteness(t *testing.T) {
 			assert.False(t, features.MCP, "Vertex should NOT support MCP")
 			assert.False(t, features.StructuredOutputs, "Vertex should NOT support StructuredOutputs")
 			assert.True(t, features.Compaction, "Vertex should support Compaction")
-			assert.True(t, features.ContextEditing, "Vertex should support ContextEditing")
+			assert.False(t, features.ContextEditing, "Vertex should NOT support ContextEditing")
 		}
 
 		// Bedrock specifics

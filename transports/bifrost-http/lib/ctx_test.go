@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	configstoreTables "github.com/maximhq/bifrost/framework/configstore/tables"
-	"github.com/maximhq/bifrost/framework/kvstore"
-	"github.com/maximhq/bifrost/framework/logstore"
+	configstoreTables "github.com/petehanssens/drover-gateway/framework/configstore/tables"
+	"github.com/petehanssens/drover-gateway/framework/kvstore"
+	"github.com/petehanssens/drover-gateway/framework/logstore"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/valyala/fasthttp"
 )
 

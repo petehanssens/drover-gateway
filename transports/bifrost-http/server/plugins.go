@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/plugins/compat"
-	"github.com/maximhq/bifrost/plugins/governance"
-	"github.com/maximhq/bifrost/plugins/logging"
-	"github.com/maximhq/bifrost/plugins/maxim"
-	"github.com/maximhq/bifrost/plugins/otel"
-	"github.com/maximhq/bifrost/plugins/prompts"
-	"github.com/maximhq/bifrost/plugins/semanticcache"
-	"github.com/maximhq/bifrost/plugins/telemetry"
-	"github.com/maximhq/bifrost/transports/bifrost-http/handlers"
-	"github.com/maximhq/bifrost/transports/bifrost-http/lib"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/plugins/compat"
+	"github.com/petehanssens/drover-gateway/plugins/governance"
+	"github.com/petehanssens/drover-gateway/plugins/logging"
+	"github.com/petehanssens/drover-gateway/plugins/maxim"
+	"github.com/petehanssens/drover-gateway/plugins/otel"
+	"github.com/petehanssens/drover-gateway/plugins/prompts"
+	"github.com/petehanssens/drover-gateway/plugins/semanticcache"
+	"github.com/petehanssens/drover-gateway/plugins/telemetry"
+	"github.com/petehanssens/drover-gateway/transports/bifrost-http/handlers"
+	"github.com/petehanssens/drover-gateway/transports/bifrost-http/lib"
 )
 
 // InferPluginTypes determines which interface types a plugin implements

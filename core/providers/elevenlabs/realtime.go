@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
 )
 
 // SupportsRealtimeAPI returns true since ElevenLabs supports Conversational AI via WebSocket.

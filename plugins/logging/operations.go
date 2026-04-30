@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-	"github.com/maximhq/bifrost/core/schemas"
-	"github.com/maximhq/bifrost/framework/logstore"
-	"github.com/maximhq/bifrost/framework/modelcatalog"
-	"github.com/maximhq/bifrost/framework/streaming"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	"github.com/petehanssens/drover-gateway/framework/logstore"
+	"github.com/petehanssens/drover-gateway/framework/modelcatalog"
+	"github.com/petehanssens/drover-gateway/framework/streaming"
 )
 
 const realtimeMissingTranscriptText = "[Audio transcription unavailable]"

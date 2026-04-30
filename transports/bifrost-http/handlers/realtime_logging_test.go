@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maximhq/bifrost/core/providers/openai"
-	"github.com/maximhq/bifrost/core/schemas"
-	bfws "github.com/maximhq/bifrost/transports/bifrost-http/websocket"
+	"github.com/petehanssens/drover-gateway/core/providers/openai"
+	"github.com/petehanssens/drover-gateway/core/schemas"
+	bfws "github.com/petehanssens/drover-gateway/transports/bifrost-http/websocket"
 )
 
 func TestShouldAccumulateRealtimeOutput(t *testing.T) {

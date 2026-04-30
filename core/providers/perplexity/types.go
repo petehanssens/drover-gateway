@@ -1,6 +1,6 @@
 package perplexity
 
-import "github.com/maximhq/bifrost/core/schemas"
+import "github.com/petehanssens/drover-gateway/core/schemas"
 
 // PerplexityChatRequest represents a Perplexity chat completion request
 type PerplexityChatRequest struct {

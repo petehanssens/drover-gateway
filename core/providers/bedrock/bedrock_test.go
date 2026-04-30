@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/maximhq/bifrost/core/internal/llmtests"
-	"github.com/maximhq/bifrost/core/providers/bedrock"
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/internal/llmtests"
+	"github.com/petehanssens/drover-gateway/core/providers/bedrock"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -141,6 +141,10 @@ func assertBedrockRequestEqual(t *testing.T, expected, actual *bedrock.BedrockCo
 func TestBedrock(t *testing.T) {
 	t.Parallel()
 
+	if strings.TrimSpace(os.Getenv("BIFROST_RUN_LIVE_PROVIDER_TESTS")) != "1" {
+		t.Skip("Skipping Bedrock live provider tests (set BIFROST_RUN_LIVE_PROVIDER_TESTS=1 to enable)")
+	}
+
 	if strings.TrimSpace(os.Getenv("AWS_ACCESS_KEY_ID")) == "" || strings.TrimSpace(os.Getenv("AWS_SECRET_ACCESS_KEY")) == "" {
 		t.Skip("Skipping Bedrock tests because AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set")
 	}
@@ -204,7 +208,7 @@ func TestBedrock(t *testing.T) {
 			ImageURL:              false, // Bedrock doesn't support image URL
 			ImageBase64:           true,
 			MultipleImages:        false, // Since one of the image is URL
-			FileBase64:            true,
+			FileBase64:            s3Bucket != "",
 			FileURL:               false, // S3 urls supported for nova models
 			CompleteEnd2End:       true,
 			Embedding:             true,
@@ -212,17 +216,17 @@ func TestBedrock(t *testing.T) {
 			ListModels:            true,
 			Reasoning:             true,
 			PromptCaching:         true,
-			BatchCreate:           true,
-			BatchList:             true,
-			BatchRetrieve:         true,
-			BatchCancel:           true,
-			BatchResults:          true,
-			FileUpload:            true,
-			FileList:              true,
-			FileRetrieve:          true,
-			FileDelete:            true,
-			FileContent:           true,
-			FileBatchInput:        true,
+			BatchCreate:           s3Bucket != "",
+			BatchList:             s3Bucket != "",
+			BatchRetrieve:         s3Bucket != "",
+			BatchCancel:           s3Bucket != "",
+			BatchResults:          s3Bucket != "",
+			FileUpload:            s3Bucket != "",
+			FileList:              s3Bucket != "",
+			FileRetrieve:          s3Bucket != "",
+			FileDelete:            s3Bucket != "",
+			FileContent:           s3Bucket != "",
+			FileBatchInput:        s3Bucket != "",
 			CountTokens:           true,
 			ImageEdit:             true,
 			ImageVariation:        true,

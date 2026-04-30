@@ -57,7 +57,7 @@ For detailed setup instructions and configuration options for each vector store,
 ```go
 import (
     "context"
-    "github.com/maximhq/bifrost/framework/vectorstore"
+    "github.com/petehanssens/drover-gateway/framework/vectorstore"
 )
 
 // Configure vector store (example: Weaviate)
@@ -110,8 +110,8 @@ if err != nil {
 
 ```go
 import (
-    "github.com/maximhq/bifrost/plugins/semanticcache"
-    "github.com/maximhq/bifrost/core/schemas"
+    "github.com/petehanssens/drover-gateway/plugins/semanticcache"
+    "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // Configure semantic cache plugin
@@ -251,7 +251,7 @@ A vector store is still required as the storage backend, even in direct hash mod
 
 ```go
 import (
-    "github.com/maximhq/bifrost/plugins/semanticcache"
+    "github.com/petehanssens/drover-gateway/plugins/semanticcache"
 )
 
 cacheConfig := &semanticcache.Config{

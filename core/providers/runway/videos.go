@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
-	schemas "github.com/maximhq/bifrost/core/schemas"
+	providerUtils "github.com/petehanssens/drover-gateway/core/providers/utils"
+	schemas "github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 func ToRunwayVideoGenerationRequest(bifrostReq *schemas.BifrostVideoGenerationRequest) (*RunwayVideoGenerationRequest, error) {

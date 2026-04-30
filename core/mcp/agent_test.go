@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // MockLLMCaller implements schemas.BifrostLLMCaller for testing

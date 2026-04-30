@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	bifrost "github.com/maximhq/bifrost/core"
-	"github.com/maximhq/bifrost/core/schemas"
+	bifrost "github.com/petehanssens/drover-gateway/core"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -382,6 +382,7 @@ func TestFilterPropertiesPinecone(t *testing.T) {
 // ============================================================================
 
 func TestPineconeStore_Integration(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -426,6 +427,7 @@ func TestPineconeStore_Integration(t *testing.T) {
 }
 
 func TestPineconeStore_VectorSearch(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -463,6 +465,7 @@ func TestPineconeStore_VectorSearch(t *testing.T) {
 }
 
 func TestPineconeStore_Delete(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -494,6 +497,7 @@ func TestPineconeStore_Delete(t *testing.T) {
 }
 
 func TestPineconeStore_ErrorHandling(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -518,6 +522,7 @@ func TestPineconeStore_ErrorHandling(t *testing.T) {
 }
 
 func TestPineconeStore_SemanticCacheWorkflow(t *testing.T) {
+	requireVectorstoreIntegration(t)
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maximhq/bifrost/core/network"
+	"github.com/petehanssens/drover-gateway/core/network"
 	"github.com/valyala/fasthttp"
 )
 

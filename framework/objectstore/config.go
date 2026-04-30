@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/maximhq/bifrost/core/schemas"
+	"github.com/petehanssens/drover-gateway/core/schemas"
 )
 
 // StoreType identifies the object storage backend.

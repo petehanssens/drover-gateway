@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/maximhq/bifrost/framework/migrator"
+	"github.com/petehanssens/drover-gateway/framework/migrator"
 	"gorm.io/gorm"
 )
 
