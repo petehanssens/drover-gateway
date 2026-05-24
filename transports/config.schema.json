@@ -596,6 +596,10 @@
                 "description": "Whether the virtual key is active",
                 "default": true
               },
+              "tools_enabled": {
+                "type": "boolean",
+                "description": "When false, tool definitions are stripped before the request is sent to the provider (Drover loop prevention). Omit or true for normal agent keys."
+              },
               "calendar_aligned": {
                 "type": "boolean",
                 "description": "Snap all budget resets to calendar boundaries (day, week, month, year)",

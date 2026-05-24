@@ -707,6 +707,7 @@ type VirtualKeyHashInput struct {
 	Name        string
 	Description string
 	IsActive    bool
+	ToolsEnabled *bool
 	TeamID      *string
 	CustomerID  *string
 	RateLimitID *string
@@ -746,6 +747,10 @@ func GenerateVirtualKeyHash(vk tables.TableVirtualKey) (string, error) {
 		hash.Write([]byte("isActive:true"))
 	} else {
 		hash.Write([]byte("isActive:false"))
+	}
+	// Hash ToolsEnabled (nil/default=true keeps legacy hashes stable)
+	if vk.ToolsEnabled != nil && !*vk.ToolsEnabled {
+		hash.Write([]byte("toolsEnabled:false"))
 	}
 	// Hash TeamID
 	if vk.TeamID != nil {

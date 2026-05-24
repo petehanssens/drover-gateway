@@ -1351,7 +1351,57 @@ func (p *GovernancePlugin) PreLLMHook(ctx *schemas.BifrostContext, req *schemas.
 		}, nil
 	}
 
+	// Enforce per-virtual-key tool policy: when tools are disabled for a VK, strip all tool
+	// definitions from the request before it reaches downstream providers.
+	if virtualKeyValue != "" {
+		if vk, ok := p.store.GetVirtualKey(ctx, virtualKeyValue); ok && vk != nil && vk.IsActive {
+			if vk.ToolsEnabled != nil && !*vk.ToolsEnabled {
+				stripToolsFromRequest(req)
+			}
+		}
+	}
+
+	// Second layer (Drover): outbound calls from Drover Brain set X-Source: drover-brain — strip tools
+	// so the provider cannot invoke tools/MCP on those requests, even if the virtual key allows tools.
+	if isDroverBrainXSource(ctx) {
+		stripToolsFromRequest(req)
+	}
+
 	return req, nil, nil
+}
+
+func isDroverBrainXSource(ctx *schemas.BifrostContext) bool {
+	v := strings.TrimSpace(bifrost.GetStringFromContext(ctx, schemas.BifrostContextKeyXSource))
+	if v == "" {
+		if h, ok := ctx.Value(schemas.BifrostContextKeyRequestHeaders).(map[string]string); ok {
+			v = strings.TrimSpace(h["x-source"])
+		}
+	}
+	return strings.EqualFold(v, "drover-brain")
+}
+
+func stripToolsFromRequest(req *schemas.BifrostRequest) {
+	if req == nil {
+		return
+	}
+	switch {
+	case req.ChatRequest != nil:
+		if req.ChatRequest.Params != nil {
+			req.ChatRequest.Params.Tools = nil
+			req.ChatRequest.Params.ToolChoice = nil
+			req.ChatRequest.Params.MCPServers = nil
+		}
+	case req.ResponsesRequest != nil:
+		if req.ResponsesRequest.Params != nil {
+			req.ResponsesRequest.Params.Tools = nil
+			req.ResponsesRequest.Params.ToolChoice = nil
+		}
+	case req.CountTokensRequest != nil:
+		if req.CountTokensRequest.Params != nil {
+			req.CountTokensRequest.Params.Tools = nil
+			req.CountTokensRequest.Params.ToolChoice = nil
+		}
+	}
 }
 
 // PostLLMHook processes the response and updates usage tracking (business logic execution)

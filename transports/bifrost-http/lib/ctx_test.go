@@ -272,6 +272,19 @@ func TestConvertToBifrostContext_NilMatcher(t *testing.T) {
 	}
 }
 
+func TestConvertToBifrostContext_XSourcePropagatesToContext(t *testing.T) {
+	ctx := &fasthttp.RequestCtx{}
+	ctx.Request.Header.Set("X-Source", "drover-brain")
+
+	bifrostCtx, cancel := ConvertToBifrostContext(ctx, testHandlerStore{})
+	defer cancel()
+
+	got, _ := bifrostCtx.Value(schemas.BifrostContextKeyXSource).(string)
+	if got != "drover-brain" {
+		t.Fatalf("BifrostContextKeyXSource = %q, want %q", got, "drover-brain")
+	}
+}
+
 func TestConvertToBifrostContext_BaggageSessionIDSetsGrouping(t *testing.T) {
 	ctx := &fasthttp.RequestCtx{}
 	ctx.Request.Header.Set("baggage", "foo=bar, session-id=rt-123, baz=qux")

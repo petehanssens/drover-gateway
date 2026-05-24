@@ -602,6 +602,11 @@ func ConvertToBifrostContext(ctx *fasthttp.RequestCtx, store HandlerStore) (*sch
 	})
 	bifrostCtx.SetValue(schemas.BifrostContextKeyRequestHeaders, allHeaders)
 
+	// Drover: propagate X-Source for loop-prevention (governance strips tools when value is drover-brain).
+	if xSource := strings.TrimSpace(string(ctx.Request.Header.Peek("X-Source"))); xSource != "" {
+		bifrostCtx.SetValue(schemas.BifrostContextKeyXSource, xSource)
+	}
+
 	// Extract per-user MCP OAuth user identifier from X-Bf-User-Id header
 	if mcpUserID := string(ctx.Request.Header.Peek("X-Bf-User-Id")); mcpUserID != "" {
 		bifrostCtx.SetValue(schemas.BifrostContextKeyMCPUserID, mcpUserID)

@@ -109,6 +109,42 @@ In addition to private networking, custom security controls, and governance, ent
 
 ---
 
+## Drover: loop prevention
+
+Services such as **Drover Brain** mark their outbound LLM calls with the HTTP header `X-Source: drover-brain`. The HTTP transport copies this value into request context (`schemas.BifrostContextKeyXSource`). The **governance** plugin then removes all tool definitions from the in-flight request—`tools`, `tool_choice`, and Anthropic `mcp_servers` on chat requests, and the same fields on Responses / count-tokens style payloads—**before** the request is sent to the upstream provider, whenever the header value is `drover-brain` (comparison is case-insensitive). This is a second line of defense alongside virtual keys that set `tools_enabled: false`: even a key that normally allows tools cannot attach tools when the caller identifies itself as Drover Brain.
+
+Calls **without** `X-Source: drover-brain` are unchanged by this rule.
+
+---
+
+## OpenAI-compatible `/v1` API (Drover Brain)
+
+The HTTP transport serves **OpenAI-shaped** routes at the gateway root (same path layout as OpenAI):
+
+- `POST /v1/chat/completions`
+- `POST /v1/embeddings`
+- `GET /v1/models`
+- …plus other `/v1/*` endpoints registered by the gateway.
+
+**SDK setup:** set the client base URL to `http://<host>:<port>/v1` (trailing `/v1` required). Pass the **virtual key** as the API key; the gateway accepts `Authorization: Bearer sk-bf-…` (or `x-bf-vk`). Use provider-prefixed models (e.g. `openai/gpt-4o-mini`, `openai/text-embedding-3-large`).
+
+**Opt-in E2E check (Drover Brain repo):** with a running gateway and provider keys configured on the gateway, run:
+
+From the **drover-brain** repo root:  
+`DROVER_GATEWAY_EMBEDDINGS_E2E=1 LLM_BASE_URL=http://localhost:8080/v1 LLM_API_KEY=sk-bf-… go test -tags integration ./internal/processor/ -run TestEmbeddings_ViaDroverGatewayE2E`
+
+### OpenAI provider (Drover stack)
+
+On startup, the gateway **auto-detects** standard env vars and wires provider keys (see transport config docs). For OpenAI you typically set:
+
+- `OPENAI_API_KEY` — primary secret for the OpenAI provider (also accepts `OPENAI_KEY`)
+
+With an OpenAI key present, models such as **`openai/gpt-4o-mini`** and **`openai/text-embedding-3-large`** are routable subject to your account and virtual-key allowlists. Health: **`GET /health`** on the gateway HTTP port.
+
+Docker builds from `transports/Dockerfile` (see upstream docs for build args and data directories).
+
+---
+
 ## Repository Structure
 
 Bifrost uses a modular architecture for maximum flexibility:
@@ -243,6 +279,19 @@ Bifrost adds virtually zero overhead to your AI requests. In sustained 5,000 RPS
 - [Google GenAI SDK](https://docs.getbifrost.ai/integrations/genai-sdk) - Drop-in GenAI replacement
 - [LiteLLM SDK](https://docs.getbifrost.ai/integrations/litellm-sdk) - LiteLLM integration
 - [Langchain SDK](https://docs.getbifrost.ai/integrations/langchain-sdk) - Langchain integration
+
+### Drover stack (Brain + Gateway)
+
+Short reference for running **Drover Brain** beside this gateway; full behavior lives in [Bifrost docs](https://docs.getbifrost.ai).
+
+1. **OpenAI** — set `OPENAI_API_KEY` (or `OPENAI_KEY`) so `openai/gpt-4o-mini` and `openai/text-embedding-3-large` route correctly.
+2. **Anthropic** — set `ANTHROPIC_API_KEY` so `anthropic/claude-3-5-sonnet-20241022` and other `anthropic/` models route per [provider configuration](https://docs.getbifrost.ai/quickstart/gateway/provider-configuration).
+3. **Logging** — the HTTP transport uses **`LOG_LEVEL`** (`debug`, `info`, `warn`, `error`; default `info`), same as `-log-level` in `transports/bifrost-http/main.go`.
+4. **Fallback / failover** — configure chains via governance/routing; see [Fallbacks & Load Balancing](https://docs.getbifrost.ai/features/fallbacks). Embeddings typically still fail closed unless you configure an alternate embedding route.
+5. **MCP servers** — register HTTP MCP endpoints in config or the Web UI so tools merge into chat when the virtual key has **`tools_enabled: true`**. Drover Brain example URL: `http://drover-brain:8080/mcp` with bearer auth matching your setup (schema varies by Bifrost version—see [MCP Integration](https://docs.getbifrost.ai/features/mcp)).
+6. **Semantic caching** — enable the **`semanticcache`** plugin per [Semantic Caching](https://docs.getbifrost.ai/features/semantic-caching).
+7. **Docker** — from the gateway repo root: `docker build -f transports/Dockerfile -t drover-gateway:local .` In **drover-brain**, replace `image: ghcr.io/...` with a local `build:` when co-developing.
+8. **Virtual keys** — internal key with **`tools_enabled: false`** for Brain’s `LLM_API_KEY`; agent key with **`tools_enabled: true`** when tools should reach the model. Combine with **`X-Source: drover-brain`** stripping (section above) for loop prevention.
 
 ### Enterprise
 
